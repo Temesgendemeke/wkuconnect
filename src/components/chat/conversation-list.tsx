@@ -12,6 +12,8 @@ import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "@/components/ui/em
 import { Button } from "@/components/ui/button";
 import { formatRelativeTime } from "@/lib/time";
 
+import type { ConversationSummary } from "../../../convex/messages";
+
 export function ConversationList() {
   const { initData } = useAuthedSession();
   const conversations = useQuery(api.messages.listMyConversations, { initData });
@@ -53,7 +55,7 @@ export function ConversationList() {
 
   return (
     <ul className="flex flex-col">
-      {conversations.map((conversation) => {
+      {conversations.map((conversation: ConversationSummary) => {
         const preview = conversation.lastMessage?.content ?? "Say hi 👋";
         return (
           <li key={conversation.conversationId}>

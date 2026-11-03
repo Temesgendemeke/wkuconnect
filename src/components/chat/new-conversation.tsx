@@ -7,6 +7,7 @@ import { useMutation, useQuery } from "convex/react";
 import { ArrowLeft, AtSign } from "lucide-react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import type { PublicUser } from "../../../convex/users";
 import { useAuthedSession } from "@/components/auth/provider";
 import { UserAvatar } from "@/components/chat/user-avatar";
 import { Button } from "@/components/ui/button";
@@ -29,15 +30,15 @@ export function NewConversation() {
   const getOrCreateConversation = useMutation(api.messages.getOrCreateConversation);
   const [starting, setStarting] = useState<string | null>(null);
 
-  const filtered =
-    users?.filter((u) => {
+  const filtered: PublicUser[] =
+    users?.filter((u: PublicUser) => {
       if (u._id === me._id) return false;
       const q = search.trim().toLowerCase();
       if (!q) return true;
       return (
         u.displayName.toLowerCase().includes(q) ||
         (u.major ?? "").toLowerCase().includes(q) ||
-        (u.skills ?? []).some((s) => s.toLowerCase().includes(q))
+        (u.skills ?? []).some((s: string) => s.toLowerCase().includes(q))
       );
     }) ?? [];
 
@@ -103,7 +104,7 @@ export function NewConversation() {
           </Empty>
         ) : (
           <ul className="flex flex-col">
-            {filtered.map((user) => (
+            {filtered.map((user: PublicUser) => (
               <li key={user._id}>
                 <button
                   type="button"

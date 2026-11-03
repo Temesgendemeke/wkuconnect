@@ -44,8 +44,9 @@ export function Thread({ conversationId }: { conversationId: string }) {
   const markConversationRead = useMutation(api.messages.markConversationRead);
 
   useEffect(() => {
-    const hasUnreadFromOther = messages?.some(
-      (m) => m.sender._id !== me._id && !m.isRead,
+    const hasUnreadFromOther = (messages ?? []).some(
+      (m: NonNullable<typeof messages>[number]) =>
+        m.sender._id !== me._id && !m.isRead,
     );
     if (!hasUnreadFromOther) return;
     markConversationRead({ initData, conversationId: conversationIdRef }).catch(
@@ -113,7 +114,7 @@ export function Thread({ conversationId }: { conversationId: string }) {
             <MessageScroller className="min-h-0 flex-1">
               <MessageScrollerViewport aria-label="Messages">
                 <MessageScrollerContent>
-                  {messages.map((message, i) => {
+                  {messages.map((message: NonNullable<typeof messages>[number], i: number) => {
                     const mine = message.sender._id === me._id;
                     const isLast = i === messages.length - 1;
                     return (
