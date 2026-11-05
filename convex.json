@@ -7,5 +7,6 @@
   "codegen": {
     "staticApi": true,
     "staticDataModel": true
+    
   }
 }
