@@ -28,7 +28,7 @@ async function getAuthedUser(
   initData: string,
 ): Promise<Doc<"users">> {
   const botToken = process.env.TELEGRAM_BOT_TOKEN ?? "";
-  const { user } = parseAndVerifyInitData(initData, botToken);
+  const { user } = await parseAndVerifyInitData(initData, botToken);
   if (!user) {
     throw new Error("initData does not contain a Telegram user");
   }

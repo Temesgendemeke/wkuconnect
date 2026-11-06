@@ -53,11 +53,11 @@ export function toPublicUser(row: Doc<"users">): PublicUser {
  * Verify initData and return the trusted Telegram session. Shared by every
  * auth-gated mutation in the app.
  */
-function verifyTelegramSession(
+async function verifyTelegramSession(
   initData: string,
   botToken: string,
-): VerifiedSession {
-  const { user } = parseAndVerifyInitData(initData, botToken);
+): Promise<VerifiedSession> {
+  const { user } = await parseAndVerifyInitData(initData, botToken);
   if (!user) {
     throw new TelegramAuthError("initData does not contain a Telegram user");
   }
@@ -86,7 +86,7 @@ export const upsertUser = mutation({
   },
   handler: async (ctx, args): Promise<PublicUser> => {
     const botToken = process.env.TELEGRAM_BOT_TOKEN ?? "";
-    const session = verifyTelegramSession(args.initData, botToken);
+    const session = await verifyTelegramSession(args.initData, botToken);
 
     const existing = await ctx.db
       .query("users")
@@ -138,7 +138,7 @@ export const updateMe = mutation({
   },
   handler: async (ctx, args): Promise<PublicUser> => {
     const botToken = process.env.TELEGRAM_BOT_TOKEN ?? "";
-    const session = verifyTelegramSession(args.initData, botToken);
+    const session = await verifyTelegramSession(args.initData, botToken);
 
     const existing = await ctx.db
       .query("users")
@@ -201,7 +201,7 @@ export const matchUsers = query({
   },
   handler: async (ctx, args): Promise<PublicUser[]> => {
     const botToken = process.env.TELEGRAM_BOT_TOKEN ?? "";
-    parseAndVerifyInitData(args.initData, botToken);
+    await parseAndVerifyInitData(args.initData, botToken);
     const limit = Math.min(args.limit ?? 20, 50);
     const wantedSkills = new Set((args.skills ?? []).map((s) => s.toLowerCase()));
 
@@ -261,7 +261,7 @@ export const listUsers = query({
   args: { initData: v.string(), limit: v.optional(v.number()) },
   handler: async (ctx, args): Promise<PublicUser[]> => {
     const botToken = process.env.TELEGRAM_BOT_TOKEN ?? "";
-    parseAndVerifyInitData(args.initData, botToken);
+    await parseAndVerifyInitData(args.initData, botToken);
     const rows = await ctx.db
       .query("users")
       .withIndex("by_createdAt")
