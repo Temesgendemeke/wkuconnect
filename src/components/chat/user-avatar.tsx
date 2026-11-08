@@ -3,9 +3,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export function UserAvatar({
   name,
   avatarUrl,
+  size,
+  className,
 }: {
   name: string;
   avatarUrl?: string;
+  size?: "default" | "sm" | "lg";
+  className?: string;
 }) {
   const initials = name
     .split(/\s+/)
@@ -14,7 +18,7 @@ export function UserAvatar({
     .join("");
 
   return (
-    <Avatar>
+    <Avatar size={size} className={className}>
       {avatarUrl ? <AvatarImage src={avatarUrl} alt={name} /> : null}
       <AvatarFallback>{initials || "?"}</AvatarFallback>
     </Avatar>

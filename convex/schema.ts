@@ -90,9 +90,24 @@ const messages = defineTable({
   .index("by_sender", ["senderId"])
   .index("by_read", ["conversationId", "isRead"]);
 
+const telegramUpdateState = v.union(
+  v.literal("processing"),
+  v.literal("sent"),
+  v.literal("failed"),
+);
+
+const telegramUpdates = defineTable({
+  updateId: v.number(),
+  state: telegramUpdateState,
+  processingAt: v.number(),
+})
+  .index("by_updateId", ["updateId"])
+  .index("by_state_processingAt", ["state", "processingAt"]);
+
 export default defineSchema({
   users,
   listings,
   conversations,
   messages,
+  telegramUpdates,
 });

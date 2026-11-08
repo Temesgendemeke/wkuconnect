@@ -124,6 +124,24 @@ export type DataModel = {
     searchIndexes: {};
     vectorIndexes: {};
   };
+  telegramUpdates: {
+    document: {
+      processingAt: number;
+      state: "processing" | "sent" | "failed";
+      updateId: number;
+      _id: Id<"telegramUpdates">;
+      _creationTime: number;
+    };
+    fieldPaths: "_creationTime" | "_id" | "processingAt" | "state" | "updateId";
+    indexes: {
+      by_id: ["_id"];
+      by_creation_time: ["_creationTime"];
+      by_state_processingAt: ["state", "processingAt", "_creationTime"];
+      by_updateId: ["updateId", "_creationTime"];
+    };
+    searchIndexes: {};
+    vectorIndexes: {};
+  };
   users: {
     document: {
       avatarUrl?: string;

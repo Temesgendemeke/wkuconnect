@@ -2,7 +2,6 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import {
   parseAndVerifyInitData,
-  parseAndVerifyTelegramContact,
   TelegramAuthError,
 } from "./auth";
 import type { DatabaseReader } from "./_generated/server";
@@ -74,7 +73,7 @@ async function verifyTelegramSession(
   };
 }
 
-export async function getPhoneVerifiedUser(
+export async function getAuthenticatedUser(
   db: DatabaseReader,
   initData: string,
 ): Promise<Doc<"users">> {
@@ -91,28 +90,7 @@ export async function getPhoneVerifiedUser(
   if (!row) {
     throw new TelegramAuthError("User not found. Call users.upsertUser first.");
   }
-  if (!hasValidPhoneVerification(row)) {
-    throw new TelegramAuthError("Verify your Telegram phone number to continue.");
-  }
-
   return row;
-}
-
-function hasValidPhoneVerification(
-  row:
-    | Pick<Doc<"users">, "phoneNumber" | "phoneVerifiedAt">
-    | null
-    | undefined,
-): boolean {
-  const verifiedAt = row?.phoneVerifiedAt;
-  return Boolean(
-    row?.phoneNumber &&
-      /^\d{7,15}$/.test(row.phoneNumber) &&
-      typeof verifiedAt === "number" &&
-      Number.isSafeInteger(verifiedAt) &&
-      verifiedAt > 0 &&
-      verifiedAt <= Date.now(),
-  );
 }
 
 export const upsertUser = mutation({
@@ -135,15 +113,6 @@ export const upsertUser = mutation({
     const now = Date.now();
 
     if (existing) {
-      if (
-        args.bio !== undefined ||
-        args.major !== undefined ||
-        args.skills !== undefined ||
-        args.avatarUrl !== undefined
-      ) {
-        await getPhoneVerifiedUser(ctx.db, args.initData);
-      }
-
       await ctx.db.patch(existing._id, {
         displayName: session.displayName,
         campusRole: "student",
@@ -161,9 +130,7 @@ export const upsertUser = mutation({
       telegramId: String(session.userId),
       displayName: session.displayName,
       campusRole: "student",
-      bio: args.bio,
-      major: args.major,
-      skills: args.skills ?? [],
+      skills: [],
       avatarUrl: session.avatarUrl,
       createdAt: now,
       updatedAt: now,
@@ -183,7 +150,7 @@ export const updateMe = mutation({
     avatarUrl: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<PublicUser> => {
-    const existing = await getPhoneVerifiedUser(ctx.db, args.initData);
+    const existing = await getAuthenticatedUser(ctx.db, args.initData);
     const session = await verifyTelegramSession(
       args.initData,
       process.env.TELEGRAM_BOT_TOKEN ?? "",
@@ -201,82 +168,6 @@ export const updateMe = mutation({
 
     const row = await ctx.db.get(existing._id);
     return toPublicUser(row!);
-  },
-});
-
-export const verifyPhone = mutation({
-  args: {
-    initData: v.string(),
-    rawContact: v.string(),
-  },
-  handler: async (ctx, args): Promise<{ verified: true }> => {
-    const botToken = process.env.TELEGRAM_BOT_TOKEN ?? "";
-    const { user } = await parseAndVerifyInitData(args.initData, botToken);
-    if (!user) {
-      throw new TelegramAuthError("initData does not contain a Telegram user");
-    }
-
-    const contact = await parseAndVerifyTelegramContact(
-      args.rawContact,
-      botToken,
-    );
-    if (contact.userId !== user.id) {
-      throw new TelegramAuthError(
-        "The shared contact does not belong to this Telegram account",
-      );
-    }
-
-    const existing = await ctx.db
-      .query("users")
-      .withIndex("by_telegramId", (q) => q.eq("telegramId", String(user.id)))
-      .unique();
-    if (!existing) {
-      throw new TelegramAuthError("User not found. Authenticate before verifying a phone.");
-    }
-
-    const registeredPhone = await ctx.db
-      .query("users")
-      .withIndex("by_phoneNumber", (q) =>
-        q.eq("phoneNumber", contact.phoneNumber),
-      )
-      .unique();
-    if (registeredPhone && registeredPhone._id !== existing._id) {
-      throw new TelegramAuthError(
-        "This phone number is already registered to another account",
-      );
-    }
-
-    if (
-      existing.phoneNumber === contact.phoneNumber &&
-      existing.phoneVerifiedAt !== undefined
-    ) {
-      return { verified: true };
-    }
-
-    const now = Date.now();
-    await ctx.db.patch(existing._id, {
-      phoneNumber: contact.phoneNumber,
-      phoneVerifiedAt: now,
-      updatedAt: now,
-    });
-    return { verified: true };
-  },
-});
-
-export const getPhoneVerificationStatus = query({
-  args: { initData: v.string() },
-  handler: async (ctx, args): Promise<boolean> => {
-    const botToken = process.env.TELEGRAM_BOT_TOKEN ?? "";
-    const { user } = await parseAndVerifyInitData(args.initData, botToken);
-    if (!user) {
-      throw new TelegramAuthError("initData does not contain a Telegram user");
-    }
-
-    const existing = await ctx.db
-      .query("users")
-      .withIndex("by_telegramId", (q) => q.eq("telegramId", String(user.id)))
-      .unique();
-    return hasValidPhoneVerification(existing);
   },
 });
 

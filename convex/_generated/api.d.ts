@@ -65,12 +65,6 @@ export declare const api: {
   };
   users: {
     getMe: FunctionReference<"query", "public", { userId: Id<"users"> }, any>;
-    getPhoneVerificationStatus: FunctionReference<
-      "query",
-      "public",
-      { initData: string },
-      any
-    >;
     getUserById: FunctionReference<
       "query",
       "public",
@@ -118,12 +112,6 @@ export declare const api: {
       },
       any
     >;
-    verifyPhone: FunctionReference<
-      "mutation",
-      "public",
-      { initData: string; rawContact: string },
-      any
-    >;
   };
 };
 
@@ -135,6 +123,21 @@ export declare const api: {
  * const myFunctionReference = internal.myModule.myFunction;
  * ```
  */
-export declare const internal: {};
+export declare const internal: {
+  telegramUpdates: {
+    claimTelegramUpdate: FunctionReference<
+      "mutation",
+      "internal",
+      { updateId: number },
+      any
+    >;
+    finishTelegramUpdate: FunctionReference<
+      "mutation",
+      "internal",
+      { processingAt: number; sent: boolean; updateId: number },
+      any
+    >;
+  };
+};
 
 export declare const components: {};

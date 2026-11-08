@@ -32,11 +32,6 @@ type ParsedInitData<TParsedUser = TelegramUser> = {
   user?: TParsedUser;
 };
 
-export type VerifiedTelegramContact = {
-  userId: number;
-  phoneNumber: string;
-};
-
 export async function verifyTelegramDataCheckString(
   dataCheckString: string,
   hash: string,
@@ -168,95 +163,6 @@ export async function parseAndVerifyInitData<
   }
 
   return { fields, hash, user } as ParsedInitData<TParsedUser>;
-}
-
-/**
- * Validate the raw query-string response returned by requestContactComplete.
- * Do not verify or store the SDK's parsed contact object on its own.
- */
-export async function parseAndVerifyTelegramContact(
-  rawContact: string,
-  botToken: string,
-  nowSeconds = Math.floor(Date.now() / 1000),
-): Promise<VerifiedTelegramContact> {
-  if (!rawContact || rawContact.length > 16_384) {
-    throw new TelegramAuthError("Telegram contact response is missing or too large");
-  }
-  if (!botToken) {
-    throw new TelegramAuthError("TELEGRAM_BOT_TOKEN is not configured");
-  }
-
-  const params = new URLSearchParams(rawContact);
-  const seenKeys = new Set<string>();
-  for (const [key] of params) {
-    if (seenKeys.has(key)) {
-      throw new TelegramAuthError("Telegram contact response contains duplicate fields");
-    }
-    seenKeys.add(key);
-  }
-
-  const hash = params.get("hash");
-  const authDateValue = params.get("auth_date");
-  const contactValue = params.get("contact");
-  if (!hash || !authDateValue || !contactValue) {
-    throw new TelegramAuthError("Telegram contact response is incomplete");
-  }
-
-  const fields: Record<string, string> = {};
-  for (const [key, value] of params.entries()) {
-    if (key !== "hash") {
-      fields[key] = value;
-    }
-  }
-  const dataCheckString = Object.entries(fields)
-    .sort(([aKey], [bKey]) => (aKey < bKey ? -1 : aKey > bKey ? 1 : 0))
-    .map(([key, value]) => `${key}=${value}`)
-    .join("\n");
-  if (
-    !(await verifyTelegramDataCheckString(dataCheckString, hash, botToken))
-  ) {
-    throw new TelegramAuthError("Telegram contact signature is invalid");
-  }
-
-  const authDate = Number(authDateValue);
-  if (!Number.isSafeInteger(authDate) || authDate <= 0) {
-    throw new TelegramAuthError("Telegram contact auth_date is invalid");
-  }
-  if (authDate - nowSeconds > MAX_FUTURE_SKEW_SECONDS) {
-    throw new TelegramAuthError("Telegram contact auth_date is in the future");
-  }
-  if (nowSeconds - authDate > MAX_AGE_SECONDS) {
-    throw new TelegramAuthError("Telegram contact response has expired");
-  }
-
-  let contact: unknown;
-  try {
-    contact = JSON.parse(contactValue);
-  } catch {
-    throw new TelegramAuthError("Telegram contact data is invalid");
-  }
-  if (
-    !contact ||
-    typeof contact !== "object" ||
-    !("user_id" in contact) ||
-    typeof contact.user_id !== "number" ||
-    !Number.isSafeInteger(contact.user_id) ||
-    contact.user_id <= 0 ||
-    !("phone_number" in contact) ||
-    typeof contact.phone_number !== "string"
-  ) {
-    throw new TelegramAuthError("Telegram contact data is incomplete");
-  }
-
-  const phoneDigits = contact.phone_number.replace(/[ \t().-]/g, "");
-  if (!/^\+?[1-9]\d{6,14}$/.test(phoneDigits)) {
-    throw new TelegramAuthError("Telegram contact phone number is invalid");
-  }
-
-  return {
-    userId: contact.user_id,
-    phoneNumber: phoneDigits.replace(/^\+/, ""),
-  };
 }
 
 export const BOT_TOKEN_ENV_KEY = "TELEGRAM_BOT_TOKEN";

@@ -1,10 +1,7 @@
 "use client";
 
 import { createContext, useContext, type ReactNode } from "react";
-import { useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
-import { useAuth, useInitData } from "@/lib/auth";
-import { PhoneRegistration } from "@/components/auth/phone-registration";
+import { useAuth } from "@/lib/auth";
 import type { PublicUser } from "../../../convex/users";
 
 type AuthedContextValue = {
@@ -15,25 +12,14 @@ type AuthedContextValue = {
 const AuthedContext = createContext<AuthedContextValue | null>(null);
 
 /**
- * Gates a chat/marketplace page behind a verified Telegram session. The
- * verified claim (initData) is provided to every downstream Convex query and
- * mutation; the backend re-verifies it server-side every time. Zero identity
- * beyond PublicUser is stored or rendered here.
+ * Gates protected pages behind Telegram initData authentication. The backend
+ * re-verifies initData for every protected query and mutation.
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const initData = useInitData();
   const auth = useAuth();
-  const phoneVerified = useQuery(
-    api.users.getPhoneVerificationStatus,
-    initData && auth.status === "authenticated" ? { initData } : "skip",
-  );
 
-  if (!initData) {
-    return (
-      <p className="m-4 text-sm text-zinc-500">
-        Open this app through the Telegram bot to authenticate.
-      </p>
-    );
+  if (auth.status === "loading") {
+    return <p className="m-4 text-sm text-zinc-500">Loading Telegram…</p>;
   }
 
   if (auth.status === "authenticating") {
@@ -52,25 +38,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
   }
 
-  if (phoneVerified === undefined) {
-    return (
-      <p className="m-4 text-sm text-zinc-500">
-        Checking phone verification…
-      </p>
-    );
-  }
-
-  if (!phoneVerified) {
-    return (
-      <main className="flex min-h-dvh flex-col items-center justify-center gap-2 p-8">
-        <h1 className="text-xl font-semibold">WKU Connect registration</h1>
-        <PhoneRegistration initData={initData} />
-      </main>
-    );
-  }
-
   return (
-    <AuthedContext.Provider value={{ initData, user: auth.user }}>
+    <AuthedContext.Provider
+      value={{ initData: auth.initData, user: auth.user }}
+    >
       {children}
     </AuthedContext.Provider>
   );

@@ -35,16 +35,23 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
-## Telegram phone registration
+## Telegram `/start` webhook
 
-The home screen lets a signed-in Telegram Mini App user request phone sharing
-with Telegram's `requestContactComplete()` flow. Convex verifies the raw signed
-contact response and matches its Telegram user ID to the separately verified
-Mini App `initData` before storing the phone number and verification timestamp.
-The phone number is private and is not included in public user profiles.
+Convex serves the Telegram webhook at `POST /telegram/webhook`. In a private
+chat, `/start` replies with a welcome message and an Open WKU Connect Mini App
+button. Configure `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, and
+`TELEGRAM_MINI_APP_URL` as Convex environment variables; the Mini App URL must
+use HTTPS. Keep the bot token and webhook secret server-side.
 
-Configure `TELEGRAM_BOT_TOKEN` as a Convex environment variable; it must not use
-a `NEXT_PUBLIC_` prefix. Phone verification confirms control of the Telegram
-phone number only, not WKU enrollment. Chat and other protected features are not
-available until phone verification is complete. Chat operations enforce this
-requirement in Convex as well as in the Mini App UI.
+After deploying the Convex functions, register the endpoint with Telegram's
+`setWebhook` method using the Convex Site URL plus `/telegram/webhook`, the same
+secret, and `allowed_updates` set to `["message"]`. The endpoint stores
+processed `/start` update IDs to suppress duplicate responses on Telegram
+retries. As Telegram's `sendMessage` API has no idempotency key, a successful
+send followed by a lost response can still result in a duplicate after a retry.
+
+When a user opens the Mini App, the frontend sends Telegram's raw `initData` to
+`users.upsertUser`. Convex verifies its Telegram signature and uses the signed
+Telegram user ID and display name to find or create the user's account. Phone
+fields may remain on existing database records, but they are not required for
+authentication or access to app features.
