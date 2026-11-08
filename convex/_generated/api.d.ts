@@ -94,8 +94,6 @@ export declare const api: {
       {
         avatarUrl?: string;
         bio?: string;
-        campusRole?: "student" | "faculty" | "staff";
-        displayName?: string;
         initData: string;
         major?: string;
         skills?: Array<string>;
@@ -108,8 +106,6 @@ export declare const api: {
       {
         avatarUrl?: string;
         bio?: string;
-        campusRole?: "student" | "faculty" | "staff";
-        displayName?: string;
         initData: string;
         major?: string;
         skills?: Array<string>;

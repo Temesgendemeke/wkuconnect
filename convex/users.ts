@@ -1,12 +1,8 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { parseAndVerifyInitData, TelegramAuthError } from "./auth";
-import { CAMPUS_ROLES, type CampusRole } from "./schema";
+import type { CampusRole } from "./schema";
 import type { Doc } from "./_generated/dataModel";
-
-const campusRoleValidator = v.union(
-  ...CAMPUS_ROLES.map((role) => v.literal(role)),
-);
 
 // ---------------------------------------------------------------------------
 // Public identity shape
@@ -76,9 +72,6 @@ async function verifyTelegramSession(
 export const upsertUser = mutation({
   args: {
     initData: v.string(),
-    displayName: v.optional(v.string()),
-    // Optional profile fields the user can set on first login / later edits.
-    campusRole: v.optional(campusRoleValidator),
     bio: v.optional(v.string()),
     major: v.optional(v.string()),
     skills: v.optional(v.array(v.string())),
@@ -97,8 +90,8 @@ export const upsertUser = mutation({
 
     if (existing) {
       await ctx.db.patch(existing._id, {
-        displayName: args.displayName ?? session.displayName,
-        campusRole: args.campusRole ?? existing.campusRole,
+        displayName: session.displayName,
+        campusRole: "student",
         bio: args.bio !== undefined ? args.bio : existing.bio,
         major: args.major !== undefined ? args.major : existing.major,
         skills: args.skills ?? existing.skills,
@@ -112,7 +105,7 @@ export const upsertUser = mutation({
     const id = await ctx.db.insert("users", {
       telegramId: String(session.userId),
       displayName: session.displayName,
-      campusRole: args.campusRole ?? "student",
+      campusRole: "student",
       bio: args.bio,
       major: args.major,
       skills: args.skills ?? [],
@@ -129,8 +122,6 @@ export const upsertUser = mutation({
 export const updateMe = mutation({
   args: {
     initData: v.string(),
-    displayName: v.optional(v.string()),
-    campusRole: v.optional(campusRoleValidator),
     bio: v.optional(v.string()),
     major: v.optional(v.string()),
     skills: v.optional(v.array(v.string())),
@@ -150,8 +141,8 @@ export const updateMe = mutation({
     }
 
     await ctx.db.patch(existing._id, {
-      displayName: args.displayName ?? existing.displayName,
-      campusRole: args.campusRole ?? existing.campusRole,
+      displayName: session.displayName,
+      campusRole: "student",
       bio: args.bio !== undefined ? args.bio : existing.bio,
       major: args.major !== undefined ? args.major : existing.major,
       skills: args.skills ?? existing.skills,

@@ -167,6 +167,12 @@ export const markConversationRead = mutation({
     if (!conversation) {
       throw new Error("Conversation not found.");
     }
+    if (
+      conversation.participantOne !== me._id &&
+      conversation.participantTwo !== me._id
+    ) {
+      throw new Error("You are not a participant of this conversation.");
+    }
     const otherId =
       conversation.participantOne === me._id
         ? conversation.participantTwo
