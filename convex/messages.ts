@@ -2,45 +2,27 @@ import { v } from "convex/values";
 import {
   mutation,
   query,
-  type DatabaseReader,
   type QueryCtx,
 } from "./_generated/server";
-import { parseAndVerifyInitData } from "./auth";
-import { toPublicUser, type PublicUser } from "./users";
+import {
+  getPhoneVerifiedUser,
+  toPublicUser,
+  type PublicUser,
+} from "./users";
 import type { Doc, Id } from "./_generated/dataModel";
 
 /**
  * Sandboxed in-app chat.
  *
- * Every function authenticates the caller from `initData` (HMAC-SHA256
- * verification) and resolves their Convex user id. This prevents IDOR — a
- * client can never read a conversation or message it does not belong to, and
- * query args can never name another user's conversation.
+ * Every function verifies the caller's Telegram initData and phone
+ * registration, then checks conversation membership where applicable. This
+ * prevents unverified accounts from using chat and prevents IDOR.
  *
  * Identity sandbox: the only user identity ever returned is `PublicUser`
  * (displayName, campusRole, bio, major, skills, avatarUrl). Telegram
  * usernames, phone numbers, and handles never cross the wire. Messages are
  * keyed by the sender's Convex user id only.
  */
-
-async function getAuthedUser(
-  db: DatabaseReader,
-  initData: string,
-): Promise<Doc<"users">> {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN ?? "";
-  const { user } = await parseAndVerifyInitData(initData, botToken);
-  if (!user) {
-    throw new Error("initData does not contain a Telegram user");
-  }
-  const row = await db
-    .query("users")
-    .withIndex("by_telegramId", (q) => q.eq("telegramId", String(user.id)))
-    .unique();
-  if (!row) {
-    throw new Error("User not found. Call users.upsertUser first.");
-  }
-  return row;
-}
 
 function orderParticipants(a: Id<"users">, b: Id<"users">): [Id<"users">, Id<"users">] {
   return a < b ? [a, b] : [b, a];
@@ -56,7 +38,7 @@ export const getOrCreateConversation = mutation({
     otherUserId: v.id("users"),
   },
   handler: async (ctx, args) => {
-    const me = await getAuthedUser(ctx.db, args.initData);
+    const me = await getPhoneVerifiedUser(ctx.db, args.initData);
     if (me._id === args.otherUserId) {
       throw new Error("You cannot start a conversation with yourself.");
     }
@@ -123,7 +105,7 @@ export const sendMessage = mutation({
     mediaStorageId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const me = await getAuthedUser(ctx.db, args.initData);
+    const me = await getPhoneVerifiedUser(ctx.db, args.initData);
     const content = args.content.trim();
     if (!content && !args.mediaStorageId) {
       throw new Error("Message content is empty.");
@@ -162,7 +144,7 @@ export const markConversationRead = mutation({
     conversationId: v.id("conversations"),
   },
   handler: async (ctx, args) => {
-    const me = await getAuthedUser(ctx.db, args.initData);
+    const me = await getPhoneVerifiedUser(ctx.db, args.initData);
     const conversation = await ctx.db.get(args.conversationId);
     if (!conversation) {
       throw new Error("Conversation not found.");
@@ -251,7 +233,7 @@ async function hydrateConversation(
 export const listMyConversations = query({
   args: { initData: v.string() },
   handler: async (ctx, args): Promise<ConversationSummary[]> => {
-    const me = await getAuthedUser(ctx.db, args.initData);
+    const me = await getPhoneVerifiedUser(ctx.db, args.initData);
 
     const [asOne, asTwo] = await Promise.all([
       ctx.db
@@ -286,7 +268,7 @@ export const getConversation = query({
     conversationId: v.id("conversations"),
   },
   handler: async (ctx, args) => {
-    const me = await getAuthedUser(ctx.db, args.initData);
+    const me = await getPhoneVerifiedUser(ctx.db, args.initData);
     const conversation = await ctx.db.get(args.conversationId);
     if (!conversation) {
       throw new Error("Conversation not found.");
@@ -316,7 +298,7 @@ export const listMessages = query({
     conversationId: v.id("conversations"),
   },
   handler: async (ctx, args) => {
-    const me = await getAuthedUser(ctx.db, args.initData);
+    const me = await getPhoneVerifiedUser(ctx.db, args.initData);
     const conversation = await ctx.db.get(args.conversationId);
     if (!conversation) {
       throw new Error("Conversation not found.");

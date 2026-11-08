@@ -5,11 +5,8 @@ import { v } from "convex/values";
  * WKU Connect - Convex database schema.
  *
  * Identity / privacy model:
- * - The only table that stores Telegram data is `users` (telegramId), and it is
- *   indexed with the dedicated `telegramId` index. It is used solely to map a
- *   verified Telegram session to a Convex user and is NEVER returned to the
- *   frontend. All public-facing identity lives on displayName, campusRole,
- *   bio, major, skills, and avatarUrl.
+ * - Telegram IDs and verified phone data are stored on `users` and are never
+ *   returned to the frontend. Public-facing identity is projected separately.
  * - The listing conversation messages do not store any external Telegram
  *   handles, phone numbers, or usernames.
  */
@@ -35,6 +32,8 @@ const listingStatus = v.union(...LISTING_STATUSES.map((s) => v.literal(s)));
 const users = defineTable({
   // Remove from clients via a custom query projection. Never leak externally.
   telegramId: v.string(),
+  phoneNumber: v.optional(v.string()),
+  phoneVerifiedAt: v.optional(v.number()),
   displayName: v.string(),
   campusRole,
   bio: v.optional(v.string()),
@@ -45,6 +44,7 @@ const users = defineTable({
   updatedAt: v.number(),
 })
   .index("by_telegramId", ["telegramId"])
+  .index("by_phoneNumber", ["phoneNumber"])
   .index("by_createdAt", ["createdAt"])
   .index("by_major", ["major"]);
 

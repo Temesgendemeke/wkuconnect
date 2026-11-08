@@ -34,3 +34,17 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Telegram phone registration
+
+The home screen lets a signed-in Telegram Mini App user request phone sharing
+with Telegram's `requestContactComplete()` flow. Convex verifies the raw signed
+contact response and matches its Telegram user ID to the separately verified
+Mini App `initData` before storing the phone number and verification timestamp.
+The phone number is private and is not included in public user profiles.
+
+Configure `TELEGRAM_BOT_TOKEN` as a Convex environment variable; it must not use
+a `NEXT_PUBLIC_` prefix. Phone verification confirms control of the Telegram
+phone number only, not WKU enrollment. Chat and other protected features are not
+available until phone verification is complete. Chat operations enforce this
+requirement in Convex as well as in the Mini App UI.

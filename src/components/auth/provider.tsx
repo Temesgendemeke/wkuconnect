@@ -1,7 +1,10 @@
 "use client";
 
 import { createContext, useContext, type ReactNode } from "react";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { useAuth, useInitData } from "@/lib/auth";
+import { PhoneRegistration } from "@/components/auth/phone-registration";
 import type { PublicUser } from "../../../convex/users";
 
 type AuthedContextValue = {
@@ -20,6 +23,10 @@ const AuthedContext = createContext<AuthedContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const initData = useInitData();
   const auth = useAuth();
+  const phoneVerified = useQuery(
+    api.users.getPhoneVerificationStatus,
+    initData && auth.status === "authenticated" ? { initData } : "skip",
+  );
 
   if (!initData) {
     return (
@@ -42,6 +49,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       <p className="m-4 text-sm text-zinc-500">
         No initData — open this app through the Telegram bot.
       </p>
+    );
+  }
+
+  if (phoneVerified === undefined) {
+    return (
+      <p className="m-4 text-sm text-zinc-500">
+        Checking phone verification…
+      </p>
+    );
+  }
+
+  if (!phoneVerified) {
+    return (
+      <main className="flex min-h-dvh flex-col items-center justify-center gap-2 p-8">
+        <h1 className="text-xl font-semibold">WKU Connect registration</h1>
+        <PhoneRegistration initData={initData} />
+      </main>
     );
   }
 

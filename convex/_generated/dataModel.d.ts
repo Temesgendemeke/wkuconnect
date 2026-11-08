@@ -132,6 +132,8 @@ export type DataModel = {
       createdAt: number;
       displayName: string;
       major?: string;
+      phoneNumber?: string;
+      phoneVerifiedAt?: number;
       skills: Array<string>;
       telegramId: string;
       updatedAt: number;
@@ -147,6 +149,8 @@ export type DataModel = {
       | "createdAt"
       | "displayName"
       | "major"
+      | "phoneNumber"
+      | "phoneVerifiedAt"
       | "skills"
       | "telegramId"
       | "updatedAt";
@@ -155,6 +159,7 @@ export type DataModel = {
       by_creation_time: ["_creationTime"];
       by_createdAt: ["createdAt", "_creationTime"];
       by_major: ["major", "_creationTime"];
+      by_phoneNumber: ["phoneNumber", "_creationTime"];
       by_telegramId: ["telegramId", "_creationTime"];
     };
     searchIndexes: {};

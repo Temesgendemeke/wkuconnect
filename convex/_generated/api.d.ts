@@ -65,6 +65,12 @@ export declare const api: {
   };
   users: {
     getMe: FunctionReference<"query", "public", { userId: Id<"users"> }, any>;
+    getPhoneVerificationStatus: FunctionReference<
+      "query",
+      "public",
+      { initData: string },
+      any
+    >;
     getUserById: FunctionReference<
       "query",
       "public",
@@ -110,6 +116,12 @@ export declare const api: {
         major?: string;
         skills?: Array<string>;
       },
+      any
+    >;
+    verifyPhone: FunctionReference<
+      "mutation",
+      "public",
+      { initData: string; rawContact: string },
       any
     >;
   };
