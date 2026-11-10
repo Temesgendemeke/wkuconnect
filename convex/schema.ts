@@ -28,6 +28,10 @@ export type CampusRole = (typeof CAMPUS_ROLES)[number];
 const campusRole = v.union(...CAMPUS_ROLES.map((r) => v.literal(r)));
 const category = v.union(...CATEGORIES.map((c) => v.literal(c)));
 const listingStatus = v.union(...LISTING_STATUSES.map((s) => v.literal(s)));
+const connectionStatus = v.union(
+  v.literal("pending"),
+  v.literal("accepted"),
+);
 
 const users = defineTable({
   // Remove from clients via a custom query projection. Never leak externally.
@@ -47,6 +51,19 @@ const users = defineTable({
   .index("by_phoneNumber", ["phoneNumber"])
   .index("by_createdAt", ["createdAt"])
   .index("by_major", ["major"]);
+
+const connections = defineTable({
+  requesterId: v.id("users"),
+  recipientId: v.id("users"),
+  status: connectionStatus,
+  createdAt: v.number(),
+  updatedAt: v.number(),
+})
+  .index("by_requester", ["requesterId"])
+  .index("by_recipient", ["recipientId"])
+  .index("by_requester_recipient", ["requesterId", "recipientId"])
+  .index("by_recipient_status", ["recipientId", "status"])
+  .index("by_requester_status", ["requesterId", "status"]);
 
 const listings = defineTable({
   creatorId: v.id("users"),
@@ -106,6 +123,7 @@ const telegramUpdates = defineTable({
 
 export default defineSchema({
   users,
+  connections,
   listings,
   conversations,
   messages,

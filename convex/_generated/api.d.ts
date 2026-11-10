@@ -20,6 +20,50 @@ import type { GenericId as Id } from "convex/values";
  * ```
  */
 export declare const api: {
+  connections: {
+    acceptConnectionRequest: FunctionReference<
+      "mutation",
+      "public",
+      { initData: string; requestId: Id<"connections"> },
+      any
+    >;
+    listConnectedStudents: FunctionReference<
+      "query",
+      "public",
+      { initData: string },
+      any
+    >;
+    listIncomingRequests: FunctionReference<
+      "query",
+      "public",
+      { initData: string },
+      any
+    >;
+    listOutgoingRequests: FunctionReference<
+      "query",
+      "public",
+      { initData: string },
+      any
+    >;
+    listStudents: FunctionReference<
+      "query",
+      "public",
+      { initData: string; limit?: number },
+      any
+    >;
+    rejectConnectionRequest: FunctionReference<
+      "mutation",
+      "public",
+      { initData: string; requestId: Id<"connections"> },
+      any
+    >;
+    sendConnectionRequest: FunctionReference<
+      "mutation",
+      "public",
+      { initData: string; recipientId: Id<"users"> },
+      any
+    >;
+  };
   messages: {
     getConversation: FunctionReference<
       "query",

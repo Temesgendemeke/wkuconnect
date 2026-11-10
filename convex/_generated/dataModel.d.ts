@@ -27,6 +27,36 @@ import type { GenericId } from "convex/values";
  */
 
 export type DataModel = {
+  connections: {
+    document: {
+      createdAt: number;
+      recipientId: Id<"users">;
+      requesterId: Id<"users">;
+      status: "pending" | "accepted";
+      updatedAt: number;
+      _id: Id<"connections">;
+      _creationTime: number;
+    };
+    fieldPaths:
+      | "_creationTime"
+      | "_id"
+      | "createdAt"
+      | "recipientId"
+      | "requesterId"
+      | "status"
+      | "updatedAt";
+    indexes: {
+      by_id: ["_id"];
+      by_creation_time: ["_creationTime"];
+      by_recipient: ["recipientId", "_creationTime"];
+      by_recipient_status: ["recipientId", "status", "_creationTime"];
+      by_requester: ["requesterId", "_creationTime"];
+      by_requester_recipient: ["requesterId", "recipientId", "_creationTime"];
+      by_requester_status: ["requesterId", "status", "_creationTime"];
+    };
+    searchIndexes: {};
+    vectorIndexes: {};
+  };
   conversations: {
     document: {
       participantOne: Id<"users">;
