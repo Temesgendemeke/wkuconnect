@@ -157,7 +157,7 @@ const telegramWebhook = httpAction(async (ctx, request) => {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           chat_id: message.chat.id,
-          text: "👋 Welcome to WKU Connect! Get started by opening the app below.",
+          text: "Welcome to WKU Connect! Get started by opening the app below.",
           reply_markup: {
             inline_keyboard: [
               [{ text: "Open WKU Connect", web_app: { url: miniAppUrl } }],
