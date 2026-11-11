@@ -119,7 +119,9 @@ const telegramUpdates = defineTable({
   processingAt: v.number(),
 })
   .index("by_updateId", ["updateId"])
+  
   .index("by_state_processingAt", ["state", "processingAt"]);
+
 
 export default defineSchema({
   users,
