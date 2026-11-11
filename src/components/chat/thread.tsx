@@ -64,7 +64,12 @@ export function Thread({ conversationId }: { conversationId: string }) {
     >
       <div className="flex h-dvh max-h-dvh min-h-0 flex-col">
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-2">
-          <Button variant="ghost" size="icon-sm" render={<Link href="/chat" />}>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            nativeButton={false}
+            render={<Link href="/chat" />}
+          >
             <ArrowLeft data-icon="inline-start" className="size-4" />
             <span className="sr-only">Back to chats</span>
           </Button>
@@ -107,7 +112,9 @@ export function Thread({ conversationId }: { conversationId: string }) {
                 This chat doesn&apos;t exist or you&apos;re not a participant.
               </EmptyDescription>
             </EmptyContent>
-            <Button render={<Link href="/chat" />}>Back to chats</Button>
+            <Button nativeButton={false} render={<Link href="/chat" />}>
+              Back to chats
+            </Button>
           </Empty>
         ) : (
           <>

@@ -1,4 +1,4 @@
-import { AuthProvider } from "@/components/auth/provider";
+import { AuthGate } from "@/components/auth/provider";
 import { Thread } from "@/components/chat/thread";
 
 export default async function ThreadPage({
@@ -8,8 +8,8 @@ export default async function ThreadPage({
 }) {
   const { conversationId } = await params;
   return (
-    <AuthProvider>
+    <AuthGate>
       <Thread conversationId={conversationId} />
-    </AuthProvider>
+    </AuthGate>
   );
 }

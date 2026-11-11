@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, MessagesSquare } from "lucide-react";
+import { House, MessagesSquare, UsersRound } from "lucide-react";
 
 const destinations = [
   { href: "/", label: "Home", icon: House },
   { href: "/chat", label: "Chats", icon: MessagesSquare },
+  { href: "/connections", label: "Connections", icon: UsersRound },
 ] as const;
 
 export function BottomNavigation() {
@@ -20,7 +21,11 @@ export function BottomNavigation() {
       <div className="mx-auto flex max-w-3xl items-stretch justify-around px-6">
         {destinations.map(({ href, label, icon: Icon }) => {
           const active =
-            href === "/" ? pathname === "/" : pathname.startsWith("/chat");
+            href === "/"
+              ? pathname === "/"
+              : href === "/chat"
+                ? pathname.startsWith("/chat")
+                : pathname.startsWith("/connections");
 
           return (
             <Link

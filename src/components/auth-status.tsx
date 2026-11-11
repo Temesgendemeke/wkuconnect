@@ -1,12 +1,21 @@
 "use client";
 
+import { useEffect } from "react";
 import { CircleAlert, LoaderCircle, ShieldCheck } from "lucide-react";
-import { useAuth } from "@/lib/auth";
+import { useSharedAuthState } from "@/components/auth/provider";
 import { UserAvatar } from "@/components/chat/user-avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function AuthStatus() {
-  const auth = useAuth();
+  const auth = useSharedAuthState();
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === "development") {
+      console.info("[WKUConnect auth]", "AuthStatus received authentication status", {
+        status: auth.status,
+      });
+    }
+  }, [auth.status]);
 
   if (auth.status === "loading") {
     return (
