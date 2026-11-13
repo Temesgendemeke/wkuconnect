@@ -2,50 +2,52 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, MessagesSquare, UsersRound } from "lucide-react";
+import { House, MessageSquareText, ShoppingBag, UsersRound } from "lucide-react";
 
 const destinations = [
   { href: "/", label: "Home", icon: House },
-  { href: "/chat", label: "Chats", icon: MessagesSquare },
-  { href: "/connections", label: "Connections", icon: UsersRound },
+  { href: "/connections", label: "People", icon: UsersRound },
+  { href: "/market", label: "Market", icon: ShoppingBag },
+  { href: "/chat", label: "Chats", icon: MessageSquareText },
 ] as const;
 
 export function BottomNavigation() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
+
+  const activeIndex = destinations.findIndex(({ href }) => {
+    if (href === "/") return pathname === "/";
+    if (href === "/connections") return pathname.startsWith("/connections") || pathname.startsWith("/groups");
+    if (href === "/market") return pathname.startsWith("/market");
+    if (href === "/chat") return pathname.startsWith("/chat");
+    return false;
+  });
 
   return (
     <nav
       aria-label="Main navigation"
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-[#4b3b27]/80 bg-[#11100e]/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-12px_36px_rgba(0,0,0,0.28)] backdrop-blur-xl"
+      className="fixed inset-x-3 bottom-5 z-50"
     >
-      <div className="mx-auto flex max-w-3xl items-stretch justify-around px-6">
-        {destinations.map(({ href, label, icon: Icon }) => {
-          const active =
-            href === "/"
-              ? pathname === "/"
-              : href === "/chat"
-                ? pathname.startsWith("/chat")
-                : pathname.startsWith("/connections");
+      <div className="relative mx-auto flex max-w-md items-center justify-between gap-1 rounded-full border border-border bg-card/95 px-2 py-2 shadow-glow backdrop-blur-xl">
+        {destinations.map(({ href, label, icon: Icon }, index) => {
+          const active = index === activeIndex;
 
           return (
             <Link
               key={href}
               href={href}
               aria-current={active ? "page" : undefined}
-              className={`relative flex min-w-24 flex-col items-center gap-1 px-5 pb-2 pt-3 text-xs font-medium transition-colors ${
-                active
-                  ? "text-[#d4b16a]"
-                  : "text-[#a69c8d] hover:text-[#e8dfd0]"
-              }`}
+              className="relative z-10 flex-1"
             >
               <span
-                aria-hidden="true"
-                className={`absolute inset-x-5 top-0 h-0.5 rounded-full ${
-                  active ? "bg-[#c39a52] shadow-[0_0_12px_#c39a5270]" : ""
+                className={`relative flex items-center justify-center gap-2 rounded-full px-3 py-3 text-xs font-medium transition-all ${
+                  active
+                    ? "bg-brand text-white shadow-[0_10px_24px_rgba(11,122,87,0.38)]"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
-              />
-              <Icon aria-hidden="true" className="size-5" strokeWidth={1.8} />
-              <span>{label}</span>
+              >
+                <Icon aria-hidden="true" className="size-4" strokeWidth={2.2} />
+                <span className="hidden sm:inline">{label}</span>
+              </span>
             </Link>
           );
         })}
