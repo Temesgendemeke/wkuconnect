@@ -109,6 +109,12 @@ export declare const api: {
   };
   users: {
     getMe: FunctionReference<"query", "public", { userId: Id<"users"> }, any>;
+    getCurrentUser: FunctionReference<
+      "query",
+      "public",
+      { initData: string },
+      any
+    >;
     getUserById: FunctionReference<
       "query",
       "public",
@@ -138,9 +144,13 @@ export declare const api: {
       {
         avatarUrl?: string;
         bio?: string;
+        displayName?: string;
+        academicYear?: string;
         initData: string;
         major?: string;
         skills?: Array<string>;
+        showDepartment?: boolean;
+        showPhoneNumber?: boolean;
       },
       any
     >;
@@ -150,9 +160,12 @@ export declare const api: {
       {
         avatarUrl?: string;
         bio?: string;
+        academicYear?: string;
         initData: string;
         major?: string;
         skills?: Array<string>;
+        showDepartment?: boolean;
+        showPhoneNumber?: boolean;
       },
       any
     >;

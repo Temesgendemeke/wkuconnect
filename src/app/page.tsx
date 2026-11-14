@@ -61,9 +61,16 @@ export default function Home() {
             <Link
               href="/profile"
               aria-label="Open profile"
-              className="flex size-10 items-center justify-center overflow-hidden rounded-full border border-[#c6f15b]/30 bg-[#c6f15b] text-[#18210f] transition-colors hover:border-[#d9ff86]"
+              className="flex size-10 items-center justify-center overflow-hidden rounded-full border border-[#c6f15b]/30 bg-[#c6f15b] text-[#18210f] transition-all hover:scale-105 hover:border-[#d9ff86]"
             >
-              {initials ? (
+              {auth.status === "authenticated" && auth.user.avatarUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={auth.user.avatarUrl}
+                  alt={auth.user.displayName || "Profile"}
+                  className="size-full object-cover"
+                />
+              ) : initials ? (
                 <span className="text-xs font-bold">{initials[0]}</span>
               ) : (
                 <UserRound aria-hidden="true" className="size-4" />

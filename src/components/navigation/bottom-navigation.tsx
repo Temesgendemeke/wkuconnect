@@ -25,9 +25,9 @@ export function BottomNavigation() {
   return (
     <nav
       aria-label="Main navigation"
-      className="fixed inset-x-3 bottom-5 z-50"
+      className="fixed inset-x-0 bottom-3 z-50 px-3 pb-[env(safe-area-inset-bottom)] sm:bottom-5"
     >
-      <div className="relative mx-auto flex max-w-md items-center justify-between gap-1 rounded-full border border-border bg-card/95 px-2 py-2 shadow-glow backdrop-blur-xl">
+      <div className="relative mx-auto flex w-full max-w-[360px] items-center justify-between gap-1 rounded-full border border-white/70 bg-[#f1f2eb] p-1.5 shadow-[0_12px_36px_rgba(0,0,0,0.38)] backdrop-blur-xl sm:max-w-md sm:p-2">
         {destinations.map(({ href, label, icon: Icon }, index) => {
           const active = index === activeIndex;
 
@@ -36,13 +36,14 @@ export function BottomNavigation() {
               key={href}
               href={href}
               aria-current={active ? "page" : undefined}
-              className="relative z-10 flex-1"
+              aria-label={label}
+              className="relative z-10 flex flex-1 justify-center"
             >
               <span
-                className={`relative flex items-center justify-center gap-2 rounded-full px-3 py-3 text-xs font-medium transition-all ${
+                className={`relative flex size-11 items-center justify-center gap-2 rounded-full px-3 text-xs font-medium transition-all duration-200 sm:size-auto sm:min-h-11 sm:flex-1 sm:px-4 ${
                   active
-                    ? "bg-brand text-white shadow-[0_10px_24px_rgba(11,122,87,0.38)]"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-[#111310] text-[#c6f15b] shadow-[0_4px_12px_rgba(0,0,0,0.22)]"
+                    : "text-[#555b50] hover:bg-black/[0.05] hover:text-[#1d2119]"
                 }`}
               >
                 <Icon aria-hidden="true" className="size-4" strokeWidth={2.2} />

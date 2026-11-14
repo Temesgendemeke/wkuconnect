@@ -42,8 +42,11 @@ const users = defineTable({
   campusRole,
   bio: v.optional(v.string()),
   major: v.optional(v.string()),
+  academicYear: v.optional(v.string()),
   skills: v.array(v.string()),
   avatarUrl: v.optional(v.string()),
+  showDepartment: v.optional(v.boolean()),
+  showPhoneNumber: v.optional(v.boolean()),
   createdAt: v.number(),
   updatedAt: v.number(),
 })

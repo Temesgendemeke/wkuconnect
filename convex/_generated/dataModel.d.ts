@@ -180,9 +180,12 @@ export type DataModel = {
       createdAt: number;
       displayName: string;
       major?: string;
+      academicYear?: string;
       phoneNumber?: string;
       phoneVerifiedAt?: number;
       skills: Array<string>;
+      showDepartment?: boolean;
+      showPhoneNumber?: boolean;
       telegramId: string;
       updatedAt: number;
       _id: Id<"users">;
@@ -197,9 +200,12 @@ export type DataModel = {
       | "createdAt"
       | "displayName"
       | "major"
+      | "academicYear"
       | "phoneNumber"
       | "phoneVerifiedAt"
       | "skills"
+      | "showDepartment"
+      | "showPhoneNumber"
       | "telegramId"
       | "updatedAt";
     indexes: {

@@ -23,8 +23,11 @@ export type PublicUser = {
   campusRole: CampusRole;
   bio?: string;
   major?: string;
+  academicYear?: string;
   skills: string[];
   avatarUrl?: string;
+  showDepartment?: boolean;
+  showPhoneNumber?: boolean;
 };
 
 export type VerifiedSession = {
@@ -44,8 +47,11 @@ export function toPublicUser(row: Doc<"users">): PublicUser {
     campusRole: row.campusRole,
     bio: row.bio,
     major: row.major,
+    academicYear: row.academicYear,
     skills: row.skills,
     avatarUrl: row.avatarUrl,
+    showDepartment: row.showDepartment,
+    showPhoneNumber: row.showPhoneNumber,
   };
 }
 
@@ -98,8 +104,11 @@ export const upsertUser = mutation({
     initData: v.string(),
     bio: v.optional(v.string()),
     major: v.optional(v.string()),
+    academicYear: v.optional(v.string()),
     skills: v.optional(v.array(v.string())),
     avatarUrl: v.optional(v.string()),
+    showDepartment: v.optional(v.boolean()),
+    showPhoneNumber: v.optional(v.boolean()),
   },
   handler: async (ctx, args): Promise<PublicUser> => {
     const botToken = process.env.TELEGRAM_BOT_TOKEN ?? "";
@@ -114,12 +123,15 @@ export const upsertUser = mutation({
 
     if (existing) {
       await ctx.db.patch(existing._id, {
-        displayName: session.displayName,
+        displayName: session.displayName || existing.displayName,
         campusRole: "student",
         bio: args.bio !== undefined ? args.bio : existing.bio,
         major: args.major !== undefined ? args.major : existing.major,
+        academicYear: args.academicYear !== undefined ? args.academicYear : existing.academicYear,
         skills: args.skills ?? existing.skills,
         avatarUrl: args.avatarUrl ?? session.avatarUrl ?? existing.avatarUrl,
+        showDepartment: args.showDepartment !== undefined ? args.showDepartment : existing.showDepartment,
+        showPhoneNumber: args.showPhoneNumber !== undefined ? args.showPhoneNumber : existing.showPhoneNumber,
         updatedAt: now,
       });
       const row = await ctx.db.get(existing._id);
@@ -128,10 +140,15 @@ export const upsertUser = mutation({
 
     const id = await ctx.db.insert("users", {
       telegramId: String(session.userId),
-      displayName: session.displayName,
+      displayName: session.displayName || "Student",
       campusRole: "student",
-      skills: [],
+      skills: args.skills ?? [],
       avatarUrl: session.avatarUrl,
+      major: args.major,
+      academicYear: args.academicYear,
+      bio: args.bio,
+      showDepartment: args.showDepartment ?? true,
+      showPhoneNumber: args.showPhoneNumber ?? false,
       createdAt: now,
       updatedAt: now,
     });
@@ -144,10 +161,14 @@ export const upsertUser = mutation({
 export const updateMe = mutation({
   args: {
     initData: v.string(),
+    displayName: v.optional(v.string()),
     bio: v.optional(v.string()),
     major: v.optional(v.string()),
+    academicYear: v.optional(v.string()),
     skills: v.optional(v.array(v.string())),
     avatarUrl: v.optional(v.string()),
+    showDepartment: v.optional(v.boolean()),
+    showPhoneNumber: v.optional(v.boolean()),
   },
   handler: async (ctx, args): Promise<PublicUser> => {
     const existing = await getAuthenticatedUser(ctx.db, args.initData);
@@ -157,12 +178,15 @@ export const updateMe = mutation({
     );
 
     await ctx.db.patch(existing._id, {
-      displayName: session.displayName,
+      displayName: args.displayName ?? session.displayName ?? existing.displayName,
       campusRole: "student",
       bio: args.bio !== undefined ? args.bio : existing.bio,
       major: args.major !== undefined ? args.major : existing.major,
+      academicYear: args.academicYear !== undefined ? args.academicYear : existing.academicYear,
       skills: args.skills ?? existing.skills,
-      avatarUrl: args.avatarUrl ?? existing.avatarUrl,
+      avatarUrl: args.avatarUrl ?? existing.avatarUrl ?? session.avatarUrl,
+      showDepartment: args.showDepartment !== undefined ? args.showDepartment : existing.showDepartment,
+      showPhoneNumber: args.showPhoneNumber !== undefined ? args.showPhoneNumber : existing.showPhoneNumber,
       updatedAt: Date.now(),
     });
 
@@ -185,6 +209,18 @@ export const getMe = query({
     const row = await ctx.db.get(args.userId);
     if (!row) return null;
     return toPublicUser(row);
+  },
+});
+
+export const getCurrentUser = query({
+  args: { initData: v.string() },
+  handler: async (ctx, args): Promise<PublicUser | null> => {
+    try {
+      const user = await getAuthenticatedUser(ctx.db, args.initData);
+      return toPublicUser(user);
+    } catch {
+      return null;
+    }
   },
 });
 
