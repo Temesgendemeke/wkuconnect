@@ -5,6 +5,17 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-bg: #0A0A0B;
+  --color-surface: #111113;
+  --color-surface-2: #151517;
+  --color-copper: #D47A4C;
+  --color-copper-soft: #E69A72;
+  --color-copper-muted: #2A1C16;
+  --color-mauve: #C88EA7;
+  --color-text-main: #FFFFFF;
+  --color-text-body: #E8DDD6;
+  --color-text-muted: #8A8480;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -33,63 +44,79 @@
 }
 
 :root {
-  --background: #faf7f2;
-  --foreground: #1f2a24;
-  --card: #ffffff;
-  --card-foreground: #1f2a24;
-  --popover: #ffffff;
-  --popover-foreground: #1f2a24;
-  --primary: #0b7a57;
-  --primary-foreground: #ffffff;
-  --secondary: #e6f1ea;
-  --secondary-foreground: #1f2a24;
-  --muted: #e6f1ea;
-  --muted-foreground: #5b665f;
-  --accent: #fff4d9;
-  --accent-foreground: #1f2a24;
-  --destructive: #ff5a4d;
-  --border: #e8e2d6;
-  --input: #ffffff;
-  --ring: #0b7a57;
-  --brand-green: #0b7a57;
-  --brand-sun: #ffc93c;
-  --brand-coral: #ff5a4d;
-  --brand-teal: #0e9f8e;
-  --brand-sky: #2f80ed;
-  --brand-orange: #f29a24;
-  --brand-gradient: linear-gradient(135deg, #0b7a57, #13986c);
-  --shadow-glow: 0 10px 30px -8px rgb(11 122 87 / 0.45);
+  --bg: #0A0A0B;
+  --surface: #111113;
+  --surface-2: #151517;
+  --border: rgba(255, 255, 255, 0.07);
+  --copper: #D47A4C;
+  --copper-soft: #E69A72;
+  --copper-muted-bg: #2A1C16;
+  --mauve: #C88EA7;
+  --text: #FFFFFF;
+  --text-body: #E8DDD6;
+  --text-muted: #8A8480;
+
+  --background: #0A0A0B;
+  --foreground: #FFFFFF;
+  --card: #111113;
+  --card-foreground: #FFFFFF;
+  --popover: #111113;
+  --popover-foreground: #FFFFFF;
+  --primary: #D47A4C;
+  --primary-foreground: #0A0A0B;
+  --secondary: #2A1C16;
+  --secondary-foreground: #E8DDD6;
+  --muted: #151517;
+  --muted-foreground: #8A8480;
+  --accent: #2A1C16;
+  --accent-foreground: #E8DDD6;
+  --destructive: #E05A47;
+  --border: rgba(255, 255, 255, 0.07);
+  --input: #151517;
+  --ring: #D47A4C;
+  --brand-copper: #D47A4C;
+  --brand-mauve: #C88EA7;
+  --brand-gradient: linear-gradient(135deg, #D47A4C, #C88EA7);
+  --shadow-glow: 0 10px 30px -8px rgba(212, 122, 76, 0.35);
   --font-geist-sans: "Geist", sans-serif;
   --font-geist-mono: "Geist Mono", monospace;
   --font-bricolage: "Bricolage Grotesque", sans-serif;
 }
 
 html.dark {
-  --background: #0e1613;
-  --foreground: #f1f6f2;
-  --card: #17221e;
-  --card-foreground: #f1f6f2;
-  --popover: #17221e;
-  --popover-foreground: #f1f6f2;
-  --primary: #13986c;
-  --primary-foreground: #06110d;
-  --secondary: #22322b;
-  --secondary-foreground: #f1f6f2;
-  --muted: #22322b;
-  --muted-foreground: #a9b8af;
-  --accent: #2d3b35;
-  --accent-foreground: #f1f6f2;
-  --destructive: #ff7a6e;
-  --border: #27352f;
-  --input: #17221e;
-  --ring: #13986c;
-  --brand-green: #0b7a57;
-  --brand-sun: #ffc93c;
-  --brand-coral: #ff7a6e;
-  --brand-teal: #0e9f8e;
-  --brand-sky: #2f80ed;
-  --brand-orange: #f29a24;
-  --brand-gradient: linear-gradient(135deg, #0b7a57, #13986c);
+  --bg: #0A0A0B;
+  --surface: #111113;
+  --surface-2: #151517;
+  --border: rgba(255, 255, 255, 0.07);
+  --copper: #D47A4C;
+  --copper-soft: #E69A72;
+  --copper-muted-bg: #2A1C16;
+  --mauve: #C88EA7;
+  --text: #FFFFFF;
+  --text-body: #E8DDD6;
+  --text-muted: #8A8480;
+
+  --background: #0A0A0B;
+  --foreground: #FFFFFF;
+  --card: #111113;
+  --card-foreground: #FFFFFF;
+  --popover: #111113;
+  --popover-foreground: #FFFFFF;
+  --primary: #D47A4C;
+  --primary-foreground: #0A0A0B;
+  --secondary: #2A1C16;
+  --secondary-foreground: #E8DDD6;
+  --muted: #151517;
+  --muted-foreground: #8A8480;
+  --accent: #2A1C16;
+  --accent-foreground: #E8DDD6;
+  --destructive: #E05A47;
+  --border: rgba(255, 255, 255, 0.07);
+  --input: #151517;
+  --ring: #D47A4C;
+  --brand-copper: #D47A4C;
+  --brand-mauve: #C88EA7;
+  --brand-gradient: linear-gradient(135deg, #D47A4C, #C88EA7);
 }
 
 @layer base {
@@ -102,7 +129,7 @@ html.dark {
   }
   body {
     @apply min-h-screen bg-background text-foreground antialiased;
-    background-image: radial-gradient(circle at top, rgba(11, 122, 87, 0.08), transparent 38%);
+    background-image: radial-gradient(circle at top, rgba(212, 122, 76, 0.08), transparent 42%);
   }
   h1,
   h2,
@@ -111,7 +138,7 @@ html.dark {
   h5,
   h6 {
     font-family: var(--font-bricolage), sans-serif;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.03em;
   }
   p,
   span,

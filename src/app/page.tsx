@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Bell,
@@ -15,16 +16,15 @@ import { AuthStatus } from "@/components/auth-status";
 import { useSharedAuthState } from "@/components/auth/provider";
 import { useFeed } from "@/lib/data/feed";
 
-const gradientMap = [
-  "from-[#d7ff5f] via-[#a8d83c] to-[#6e9f2c]",
-  "from-[#c5ec58] via-[#8bbd39] to-[#58802e]",
-  "from-[#dafa78] via-[#a6c84d] to-[#718c39]",
-  "from-[#bbdf68] via-[#8fae49] to-[#58743a]",
-];
-
 export default function Home() {
   const { data: feed } = useFeed();
   const auth = useSharedAuthState();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const fullName =
     auth.status === "authenticated" ? auth.user.displayName.trim() : "";
   const firstName = fullName ? fullName.split(/\s+/)[0] : undefined;
@@ -38,13 +38,21 @@ export default function Home() {
     : undefined;
 
   return (
-    <main className="layout-shell isolate relative min-h-screen w-full overflow-hidden bg-[#111310] text-white">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[34rem] bg-[radial-gradient(ellipse_at_50%_-20%,rgba(174,222,62,0.12),transparent_68%)]" />
+    <main className="layout-shell isolate relative min-h-screen w-full overflow-hidden bg-[#0A0A0B] text-[#FFFFFF]">
+      {/* Background ambient glow - warm terracotta copper */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[34rem] bg-[radial-gradient(ellipse_at_50%_-20%,rgba(212,122,76,0.14),transparent_68%)]"
+      />
+
       <div className="mx-auto flex w-full max-w-lg flex-col gap-2.5 px-4 pb-10 pt-3 sm:gap-3 sm:px-6 sm:pt-5">
         <header className="relative z-10 flex items-center justify-between pb-2">
           <Link href="/" className="group flex items-center gap-2.5" aria-label="WKU Connect home">
-            <span aria-hidden="true" className="size-2.5 rounded-[3px] bg-[#c6f15b] shadow-[0_0_16px_rgba(198,241,91,0.2)] transition-transform group-hover:scale-110" />
-            <span className="font-display text-sm font-bold tracking-tight text-white">
+            <span
+              aria-hidden="true"
+              className="size-2.5 rounded-[3px] bg-[#D47A4C] shadow-[0_0_16px_rgba(212,122,76,0.35)] transition-transform group-hover:scale-110"
+            />
+            <span className="font-display text-sm font-bold tracking-tight text-[#FFFFFF]">
               WKU Connect
             </span>
           </Link>
@@ -53,49 +61,67 @@ export default function Home() {
             <button
               type="button"
               aria-label="Notifications"
-              className="relative flex size-10 items-center justify-center rounded-full border border-white/[0.06] bg-[#191c18] text-[#c4c8bd] transition-colors hover:border-[#c6f15b]/35 hover:text-[#d9ff86]"
+              className="relative flex size-10 items-center justify-center rounded-full border border-[rgba(255,255,255,0.07)] bg-[#111113] text-[#8A8480] transition-colors hover:border-[#D47A4C]/50 hover:text-[#E8DDD6]"
             >
               <Bell aria-hidden="true" className="size-4" />
-              <span className="absolute right-2.5 top-2.5 size-1.5 rounded-full bg-[#ff805f] ring-2 ring-[#191c18]" />
+              <span className="absolute right-2.5 top-2.5 size-1.5 rounded-full bg-[#C88EA7] ring-2 ring-[#111113]" />
             </button>
             <Link
               href="/profile"
               aria-label="Open profile"
-              className="flex size-10 items-center justify-center overflow-hidden rounded-full border border-[#c6f15b]/30 bg-[#c6f15b] text-[#18210f] transition-all hover:scale-105 hover:border-[#d9ff86]"
+              className="flex size-10 items-center justify-center overflow-hidden rounded-full border border-[#D47A4C]/45 bg-[#2A1C16] text-[#D47A4C] transition-all hover:scale-105 hover:border-[#E69A72]"
             >
-              {auth.status === "authenticated" && auth.user.avatarUrl ? (
+              {mounted && auth.status === "authenticated" && auth.user.avatarUrl ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={auth.user.avatarUrl}
                   alt={auth.user.displayName || "Profile"}
                   className="size-full object-cover"
                 />
-              ) : initials ? (
-                <span className="text-xs font-bold">{initials[0]}</span>
+              ) : mounted && initials ? (
+                <span className="text-xs font-bold text-[#E8DDD6]">{initials[0]}</span>
               ) : (
-                <UserRound aria-hidden="true" className="size-4" />
+                <UserRound aria-hidden="true" className="size-4 text-[#D47A4C]" />
               )}
             </Link>
           </div>
         </header>
 
-        <section className="relative overflow-hidden rounded-[25px] bg-[#c6f15b] px-4 py-4 text-[#17200e] shadow-[0_16px_40px_rgba(123,161,43,0.13)] sm:px-5 sm:py-5">
-          <div aria-hidden="true" className="absolute -bottom-12 -right-8 size-32 rounded-full bg-[#8dbb30]/25" />
-          <div aria-hidden="true" className="absolute -bottom-7 right-2 size-20 rounded-full border border-[#263914]/10" />
-          <div className="relative flex min-h-32 items-end justify-between gap-2">
+        {/* TOP BANNER: Frosted-glass dark card with soft warm orange glow */}
+        <section
+          style={{
+            background: "#161416",
+            backgroundImage:
+              "radial-gradient(circle at 10% 100%, rgba(255,138,61,0.6) 0%, rgba(224,114,58,0.18) 50%, transparent 100%)",
+            border: "1px solid rgba(255,255,255,0.16)",
+            borderRadius: "22px",
+            backdropFilter: "blur(20px)",
+          }}
+          className="relative overflow-hidden px-4 py-4 text-white sm:px-5 sm:py-5"
+        >
+          {/* Subtle 5% white overlay */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-white/[0.05]"
+          />
+
+          <div className="relative z-10 flex min-h-32 items-end justify-between gap-2">
             <div className="max-w-[19rem] pb-0.5 pr-2">
-              <p className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.2em] text-[#34491c]">
+              <p className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.2em] text-[#E69A72]">
                 Good morning
               </p>
-              <h1 className="font-display text-[25px] font-bold leading-[1.08] tracking-tight sm:text-3xl">
+              <h1 className="font-display text-[22px] font-medium leading-[1.12] tracking-tight text-white sm:text-[23px]">
                 Hey {firstName ?? "there"}, who will you meet today?
               </h1>
-              <p className="mt-2 max-w-[15rem] text-[11px] leading-[1.4] text-[#34451f] sm:text-xs">
+              <p className="mt-2 max-w-[15rem] text-[11px] leading-[1.4] text-white/78 sm:text-xs">
                 Your campus circle is ready when you are.
               </p>
             </div>
-            <span aria-hidden="true" className="relative z-10 mb-1 flex size-11 shrink-0 items-center justify-center rounded-full bg-[#111510] text-[#d7ff72] shadow-lg sm:size-12">
-              <ChevronRight className="size-5" strokeWidth={2.2} />
+            <span
+              aria-hidden="true"
+              className="relative z-10 mb-1 flex size-11 shrink-0 items-center justify-center rounded-full bg-[#0A0A0B] text-[#D47A4C] border border-[rgba(255,255,255,0.1)] sm:size-12 transition-transform hover:scale-105"
+            >
+              <ChevronRight className="size-5" strokeWidth={2.4} />
             </span>
           </div>
         </section>
@@ -104,6 +130,7 @@ export default function Home() {
           <AuthStatus />
         </section>
 
+        {/* Quick links: cards in #111113, copper icon chips in #2A1C16 */}
         <section aria-label="Quick links" className="grid grid-cols-2 grid-rows-[repeat(2,minmax(4.5rem,1fr))] gap-2">
           {[
             {
@@ -131,63 +158,75 @@ export default function Home() {
             <Link
               key={href}
               href={href}
-              className={`group flex gap-3 rounded-[21px] border border-white/[0.06] bg-[#191c18] p-3.5 shadow-[0_10px_26px_rgba(0,0,0,0.14)] transition-all duration-200 hover:border-[#c6f15b]/30 hover:bg-[#1e221a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c6f15b] ${className}`}
+              className={`group flex gap-3 rounded-[18px] border border-[rgba(255,255,255,0.07)] bg-[#111113] p-3.5 transition-all duration-200 hover:border-[#D47A4C]/45 hover:bg-[#151517] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D47A4C] ${className}`}
             >
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-[#c6f15b]/20 bg-[#252c1c] text-[#c6f15b] transition-transform duration-200 group-hover:scale-105">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-[#D47A4C]/45 bg-[#2A1C16] text-[#D47A4C] transition-transform duration-200 group-hover:scale-105">
                 <Icon aria-hidden="true" className="size-5" />
               </span>
               <span className="flex min-w-0 flex-1 items-end justify-between gap-1">
                 <span className="min-w-0">
                   <span className="block text-sm font-semibold leading-tight text-white">{label}</span>
-                  <span className="mt-1 block text-[10px] font-medium text-[#c6f15b]">{description}</span>
+                  <span className="mt-1 block text-[10px] font-medium text-[#D47A4C]">{description}</span>
                 </span>
                 {href === "/connections" ? null : (
-                  <ChevronRight aria-hidden="true" className="mb-1 size-4 shrink-0 text-[#9ba194] transition-transform group-hover:translate-x-0.5 group-hover:text-[#c6f15b]" />
+                  <ChevronRight aria-hidden="true" className="mb-1 size-4 shrink-0 text-[#8A8480] transition-transform group-hover:translate-x-0.5 group-hover:text-[#D47A4C]" />
                 )}
               </span>
             </Link>
           ))}
         </section>
 
-        <section className="rounded-[23px] border border-white/[0.06] bg-[#191c18] p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.2)] sm:p-4">
+        {/* Campus updates feed card */}
+        <section className="rounded-[18px] border border-[rgba(255,255,255,0.07)] bg-[#111113] p-3.5 sm:p-4">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
               <h2 className="font-display text-lg font-semibold tracking-tight text-white sm:text-xl">
                 Campus updates
               </h2>
             </div>
-            <Link href="/notifications" className="group inline-flex items-center gap-1 whitespace-nowrap text-[11px] font-semibold text-[#c6f15b] transition-colors hover:text-[#dcff8b]">
+            <Link
+              href="/notifications"
+              className="group inline-flex items-center gap-1 whitespace-nowrap text-[11px] font-semibold text-[#C88EA7] transition-colors hover:text-[#E8DDD6]"
+            >
               View all
             </Link>
           </div>
 
-          <div className="mb-2 flex min-h-10 items-center rounded-[13px] border border-white/[0.04] bg-[#0f110e] px-3 text-xs text-[#8f9589]">
+          <div className="mb-2 flex min-h-10 items-center rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#151517] px-3 text-xs text-[#8A8480]">
             <span>What&apos;s on your mind{firstName ? `, ${firstName}` : ""}?</span>
           </div>
 
           <div className="space-y-2.5">
             {feed.map((post, index) => (
-              <article key={post.id} className="card-in rounded-[18px] px-0 py-2 transition-colors hover:bg-white/[0.015]" style={{ ["--i" as string]: index }}>
+              <article
+                key={post.id}
+                className="card-in rounded-[16px] px-0 py-2 transition-colors hover:bg-white/[0.02]"
+                style={{ ["--i" as string]: index }}
+              >
                 <div className="flex items-start gap-2.5">
-                  <div className={`flex size-8 shrink-0 items-center justify-center rounded-[11px] bg-gradient-to-br ${gradientMap[index % gradientMap.length]} text-[10px] font-bold text-[#1e2415]`}>
-                    {post.author.split(" ").map((part) => part[0]).slice(0, 2).join("")}
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-[11px] bg-gradient-to-br from-[#D47A4C] to-[#C88EA7] text-[10px] font-bold text-[#0A0A0B]">
+                    {post.author
+                      .split(" ")
+                      .map((part) => part[0])
+                      .slice(0, 2)
+                      .join("")}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div>
                       <p className="text-xs font-semibold text-white">{post.author}</p>
-                      <p className="text-[9px] leading-4 text-[#858b80]">{post.time}</p>
+                      <p className="text-[9px] leading-4 text-[#8A8480]">{post.time}</p>
                     </div>
-                    <p className="mt-1.5 text-xs leading-[1.45] text-[#e0e3db]">{post.content}</p>
+                    <p className="mt-1.5 text-xs leading-[1.45] text-[#E8DDD6]">{post.content}</p>
 
                     {post.image && (
-                      <div className="mt-3 overflow-hidden rounded-[14px] border border-white/[0.06] bg-[#22271d] p-2">
-                        <div className={`h-32 rounded-[10px] bg-gradient-to-br ${gradientMap[index % gradientMap.length]} opacity-70`} />
+                      <div className="mt-3 overflow-hidden rounded-[14px] border border-[rgba(255,255,255,0.07)] bg-[#151517] p-2">
+                        <div className="h-32 rounded-[10px] bg-gradient-to-br from-[#D47A4C] to-[#7A4A5C] opacity-80" />
                       </div>
                     )}
 
-                    <div className="mt-2 flex items-center gap-4 text-[10px] text-[#92988d]">
-                      <span className={`inline-flex items-center gap-1 ${post.liked ? "text-[#c6f15b]" : ""}`}>
-                        <Heart aria-hidden="true" className={`size-3.5 ${post.liked ? "fill-current" : ""}`} />
+                    <div className="mt-2 flex items-center gap-4 text-[10px] text-[#8A8480]">
+                      <span className={`inline-flex items-center gap-1 ${post.liked ? "text-[#C88EA7]" : ""}`}>
+                        <Heart aria-hidden="true" className={`size-3.5 ${post.liked ? "fill-current text-[#C88EA7]" : ""}`} />
                         {post.likes}
                       </span>
                       <span className="inline-flex items-center gap-1">

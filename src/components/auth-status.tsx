@@ -22,14 +22,14 @@ export function AuthStatus() {
       <section
         aria-label="Telegram profile loading"
         aria-live="polite"
-        className="w-full rounded-3xl border border-white/[0.07] bg-[#191c18] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.2)]"
+        className="w-full rounded-[18px] border border-[rgba(255,255,255,0.07)] bg-[#111113] p-4"
       >
         <div className="flex items-center gap-4">
-          <Skeleton className="size-12 rounded-2xl bg-[#292d26]" />
+          <Skeleton className="size-12 rounded-2xl bg-[#1E1E21]" />
           <div className="flex flex-1 flex-col gap-2">
-            <Skeleton className="h-3 w-28 bg-[#292d26]" />
-            <Skeleton className="h-4 w-44 max-w-full bg-[#292d26]" />
-            <p className="text-xs text-[#92978c]">Loading your Telegram profile…</p>
+            <Skeleton className="h-3 w-28 bg-[#1E1E21]" />
+            <Skeleton className="h-4 w-44 max-w-full bg-[#1E1E21]" />
+            <p className="text-xs text-[#8A8480]">Loading your Telegram profile…</p>
           </div>
         </div>
       </section>
@@ -40,9 +40,9 @@ export function AuthStatus() {
     return (
       <section
         aria-live="polite"
-        className="flex items-center gap-3 rounded-3xl border border-white/[0.07] bg-[#191c18] p-4 text-sm text-[#c5c9bf]"
+        className="flex items-center gap-3 rounded-[18px] border border-[rgba(255,255,255,0.07)] bg-[#111113] p-4 text-sm text-[#E8DDD6]"
       >
-        <LoaderCircle aria-hidden="true" className="size-5 animate-spin text-[#c6f15b]" />
+        <LoaderCircle aria-hidden="true" className="size-5 animate-spin text-[#D47A4C]" />
         <span>Securely verifying your Telegram session…</span>
       </section>
     );
@@ -52,14 +52,14 @@ export function AuthStatus() {
     return (
       <section
         aria-live="polite"
-        className="flex items-start gap-3 rounded-3xl border border-white/[0.07] bg-[#191c18] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.2)]"
+        className="flex items-start gap-3 rounded-[18px] border border-[rgba(255,255,255,0.07)] bg-[#111113] p-4"
       >
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-[#c6f15b]/25 bg-[#252c1c] text-[#c6f15b]">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-[#D47A4C]/45 bg-[#2A1C16] text-[#D47A4C]">
           <CircleAlert aria-hidden="true" className="size-4" />
         </div>
         <div className="min-w-0">
           <h2 className="text-sm font-semibold text-white">Telegram session not found</h2>
-          <p className="mt-1 text-xs leading-5 text-[#a3a99c]">
+          <p className="mt-1 text-xs leading-5 text-[#8A8480]">
             Open WKU Connect from its Telegram bot to securely load your profile.
           </p>
         </div>
@@ -71,13 +71,13 @@ export function AuthStatus() {
     return (
       <section
         role="alert"
-        className="rounded-3xl border border-[#70443d]/60 bg-[#211a18] p-4"
+        className="rounded-[18px] border border-[#E05A47]/40 bg-[#161213] p-4"
       >
         <div className="flex items-start gap-3">
-          <CircleAlert aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-[#ef927d]" />
+          <CircleAlert aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-[#E05A47]" />
           <div>
-            <h2 className="font-medium text-[#f3d9d2]">We couldn’t load your profile</h2>
-            <p className="mt-1 text-sm leading-6 text-[#c9aaa2]">{auth.message}</p>
+            <h2 className="font-medium text-[#FFFFFF]">We couldn’t load your profile</h2>
+            <p className="mt-1 text-sm leading-6 text-[#E8DDD6]">{auth.message}</p>
           </div>
         </div>
       </section>
@@ -90,21 +90,21 @@ export function AuthStatus() {
   return (
     <section
       aria-label="Your profile"
-      className="relative w-full overflow-hidden rounded-3xl border border-white/[0.07] bg-gradient-to-br from-[#1e221b] via-[#191c18] to-[#151713] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.22)] sm:p-5"
+      className="relative w-full overflow-hidden rounded-[18px] border border-[rgba(255,255,255,0.07)] bg-[#111113] p-4 sm:p-5"
     >
       <div
         aria-hidden="true"
-        className="absolute -right-10 -top-14 size-40 rounded-full bg-[#c6f15b]/[0.06] blur-3xl"
+        className="pointer-events-none absolute -right-10 -top-14 size-40 rounded-full bg-[#D47A4C]/[0.08] blur-3xl"
       />
       <div className="relative flex items-center gap-4">
         <UserAvatar
           name={auth.user.displayName}
           avatarUrl={auth.user.avatarUrl}
           size="lg"
-          className="size-12 border border-[#c6f15b]/30 ring-2 ring-[#c6f15b]/10"
+          className="size-12 border border-[#D47A4C]/35 ring-2 ring-[#D47A4C]/10"
         />
         <div className="min-w-0 flex-1">
-          <div className="mb-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#c6f15b]">
+          <div className="mb-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#D47A4C]">
             <ShieldCheck aria-hidden="true" className="size-3.5" />
             Telegram verified
           </div>
@@ -114,11 +114,11 @@ export function AuthStatus() {
         </div>
       </div>
       {(major || skills.length > 0) && (
-        <div className="relative mt-4 border-t border-white/[0.08] pt-3">
+        <div className="relative mt-4 border-t border-[rgba(255,255,255,0.07)] pt-3">
           {major && (
-            <p className="text-sm text-[#c5c9bf]">
-              <span className="text-[#92978c]">Major</span>
-              <span aria-hidden="true" className="mx-2 text-[#646b5e]">·</span>
+            <p className="text-sm text-[#E8DDD6]">
+              <span className="text-[#8A8480]">Major</span>
+              <span aria-hidden="true" className="mx-2 text-[#8A8480]">·</span>
               {major}
             </p>
           )}
@@ -127,7 +127,7 @@ export function AuthStatus() {
               {skills.map((skill) => (
                 <span
                   key={skill}
-                  className="rounded-full border border-[#c6f15b]/15 bg-[#252c1c] px-3 py-1 text-xs text-[#d0e7a3]"
+                  className="rounded-full border border-[#D47A4C]/30 bg-[#2A1C16] px-3 py-1 text-xs font-medium text-[#E69A72]"
                 >
                   {skill}
                 </span>

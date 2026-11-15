@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -82,7 +82,7 @@ export default function ProfilePage() {
   const auth = useSharedAuthState();
   const updateMeMutation = useMutation(api.users.updateMe);
 
-  // Live Convex user subscription
+  // Live Convex user query
   const liveConvexUser = useQuery(
     api.users.getCurrentUser,
     auth.status === "authenticated" && auth.initData
@@ -90,22 +90,7 @@ export default function ProfilePage() {
       : "skip"
   );
 
-  // Original saved state baseline (to calculate exact diff)
-  const [initialLoaded, setInitialLoaded] = useState<boolean>(false);
-  const [savedBaseline, setSavedBaseline] = useState({
-    displayName: "Student User",
-    avatarUrl: undefined as string | undefined,
-    department: "Computer Science",
-    customDepartment: "",
-    isCustomDept: false,
-    academicYear: "Y3",
-    bio: "Interested in tech, campus events, and collaborating with fellow students.",
-    skills: ["Design", "Research", "Python", "Campus events"] as string[],
-    showDepartment: true,
-    showPhone: false,
-  });
-
-  // Current working editable states
+  // Editable profile states
   const [displayName, setDisplayName] = useState<string>("Student User");
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
   const [department, setDepartment] = useState<string>("Computer Science");
@@ -127,39 +112,48 @@ export default function ProfilePage() {
   const [showDepartment, setShowDepartment] = useState<boolean>(true);
   const [showPhone, setShowPhone] = useState<boolean>(false);
 
-  // Status feedback states
+  // Feedback and saving states
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [savedSuccess, setSavedSuccess] = useState<boolean>(false);
   const [saveMessage, setSaveMessage] = useState<string>("");
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // Flags to prevent background overwrites
+  const [userHasEdited, setUserHasEdited] = useState<boolean>(false);
+  const [initialDataLoaded, setInitialDataLoaded] = useState<boolean>(false);
+
   // -------------------------------------------------------------
-  // Data Initialization (Only runs on initial load / server sync)
+  // Data Loading: Runs on initial load or live DB connect
   // -------------------------------------------------------------
   useEffect(() => {
-    // 1. Check local storage cache first
-    let loadedState = { ...savedBaseline };
+    // If user has already started editing fields in this session, don't overwrite
+    if (userHasEdited) return;
+
+    let hasLoaded = false;
+
+    // 1. Check local storage cache
     const savedLocal = localStorage.getItem("wku_user_profile");
     if (savedLocal) {
       try {
         const parsed = JSON.parse(savedLocal);
-        if (parsed.displayName) loadedState.displayName = parsed.displayName;
-        if (parsed.avatarUrl) loadedState.avatarUrl = parsed.avatarUrl;
+        if (parsed.displayName) setDisplayName(parsed.displayName);
+        if (parsed.avatarUrl) setAvatarUrl(parsed.avatarUrl);
         if (parsed.department) {
           if (WKU_DEPARTMENTS.includes(parsed.department)) {
-            loadedState.department = parsed.department;
-            loadedState.isCustomDept = false;
+            setDepartment(parsed.department);
+            setIsCustomDept(false);
           } else {
-            loadedState.department = "Other";
-            loadedState.customDepartment = parsed.department;
-            loadedState.isCustomDept = true;
+            setDepartment("Other");
+            setCustomDepartment(parsed.department);
+            setIsCustomDept(true);
           }
         }
-        if (parsed.academicYear) loadedState.academicYear = parsed.academicYear;
-        if (parsed.bio !== undefined) loadedState.bio = parsed.bio;
-        if (Array.isArray(parsed.skills)) loadedState.skills = parsed.skills;
-        if (parsed.showDepartment !== undefined) loadedState.showDepartment = parsed.showDepartment;
-        if (parsed.showPhone !== undefined) loadedState.showPhone = parsed.showPhone;
+        if (parsed.academicYear) setAcademicYear(parsed.academicYear);
+        if (parsed.bio !== undefined) setBio(parsed.bio);
+        if (Array.isArray(parsed.skills)) setSkills(parsed.skills);
+        if (parsed.showDepartment !== undefined) setShowDepartment(parsed.showDepartment);
+        if (parsed.showPhone !== undefined) setShowPhone(parsed.showPhone);
+        hasLoaded = true;
       } catch (e) {
         console.error("Local profile read error", e);
       }
@@ -168,114 +162,45 @@ export default function ProfilePage() {
     // 2. Override with live Convex user if available
     const sourceUser = liveConvexUser || (auth.status === "authenticated" ? auth.user : null);
     if (sourceUser) {
-      if (sourceUser.displayName) loadedState.displayName = sourceUser.displayName;
-      if (sourceUser.avatarUrl) loadedState.avatarUrl = sourceUser.avatarUrl;
+      if (sourceUser.displayName) setDisplayName(sourceUser.displayName);
+      if (sourceUser.avatarUrl) setAvatarUrl(sourceUser.avatarUrl);
       if (sourceUser.major) {
         if (WKU_DEPARTMENTS.includes(sourceUser.major as any)) {
-          loadedState.department = sourceUser.major;
-          loadedState.isCustomDept = false;
+          setDepartment(sourceUser.major);
+          setIsCustomDept(false);
         } else {
-          loadedState.department = "Other";
-          loadedState.customDepartment = sourceUser.major;
-          loadedState.isCustomDept = true;
+          setDepartment("Other");
+          setCustomDepartment(sourceUser.major);
+          setIsCustomDept(true);
         }
       }
-      if (sourceUser.academicYear) loadedState.academicYear = sourceUser.academicYear;
-      if (sourceUser.bio !== undefined && sourceUser.bio !== null) loadedState.bio = sourceUser.bio;
-      if (sourceUser.skills && sourceUser.skills.length > 0) loadedState.skills = sourceUser.skills;
-      if (sourceUser.showDepartment !== undefined) loadedState.showDepartment = sourceUser.showDepartment;
-      if (sourceUser.showPhoneNumber !== undefined) loadedState.showPhone = sourceUser.showPhoneNumber;
+      if (sourceUser.academicYear) setAcademicYear(sourceUser.academicYear);
+      if (sourceUser.bio !== undefined && sourceUser.bio !== null) setBio(sourceUser.bio);
+      if (sourceUser.skills && sourceUser.skills.length > 0) setSkills(sourceUser.skills);
+      if (sourceUser.showDepartment !== undefined) setShowDepartment(sourceUser.showDepartment);
+      if (sourceUser.showPhoneNumber !== undefined) setShowPhone(sourceUser.showPhoneNumber);
+      hasLoaded = true;
     }
 
-    // Apply only if not yet initialized by user
-    if (!initialLoaded) {
-      setSavedBaseline(loadedState);
-      setDisplayName(loadedState.displayName);
-      setAvatarUrl(loadedState.avatarUrl);
-      setDepartment(loadedState.department);
-      setCustomDepartment(loadedState.customDepartment);
-      setIsCustomDept(loadedState.isCustomDept);
-      setAcademicYear(loadedState.academicYear);
-      setBio(loadedState.bio);
-      setSkills(loadedState.skills);
-      setShowDepartment(loadedState.showDepartment);
-      setShowPhone(loadedState.showPhone);
-      setInitialLoaded(true);
+    if (hasLoaded) {
+      setInitialDataLoaded(true);
     }
-  }, [liveConvexUser, auth, initialLoaded]);
+  }, [liveConvexUser, auth, userHasEdited]);
 
   // -------------------------------------------------------------
-  // Validation: Calculate if actual changes exist
+  // Dedicated Field Handlers (Full Real-Time Responsiveness)
   // -------------------------------------------------------------
   const effectiveDepartment = isCustomDept
     ? customDepartment || "Custom Dept"
     : department;
 
-  const hasNameChanged = useMemo(() => {
-    return displayName.trim() !== savedBaseline.displayName.trim();
-  }, [displayName, savedBaseline.displayName]);
-
-  const hasYearChanged = useMemo(() => {
-    return academicYear !== savedBaseline.academicYear;
-  }, [academicYear, savedBaseline.academicYear]);
-
-  const hasDepartmentChanged = useMemo(() => {
-    const curDept = isCustomDept ? customDepartment.trim() : department;
-    const baseDept = savedBaseline.isCustomDept
-      ? savedBaseline.customDepartment.trim()
-      : savedBaseline.department;
-    return curDept !== baseDept;
-  }, [isCustomDept, customDepartment, department, savedBaseline]);
-
-  const hasBioChanged = useMemo(() => {
-    return bio.trim() !== savedBaseline.bio.trim();
-  }, [bio, savedBaseline.bio]);
-
-  const hasSkillsChanged = useMemo(() => {
-    if (skills.length !== savedBaseline.skills.length) return true;
-    return JSON.stringify([...skills].sort()) !== JSON.stringify([...savedBaseline.skills].sort());
-  }, [skills, savedBaseline.skills]);
-
-  const hasAvatarChanged = useMemo(() => {
-    return avatarUrl !== savedBaseline.avatarUrl;
-  }, [avatarUrl, savedBaseline.avatarUrl]);
-
-  const hasPrivacyChanged = useMemo(() => {
-    return (
-      showDepartment !== savedBaseline.showDepartment ||
-      showPhone !== savedBaseline.showPhone
-    );
-  }, [showDepartment, showPhone, savedBaseline]);
-
-  // Check if anything has been modified
-  const hasAnyChanges = useMemo(() => {
-    return (
-      hasNameChanged ||
-      hasYearChanged ||
-      hasDepartmentChanged ||
-      hasBioChanged ||
-      hasSkillsChanged ||
-      hasAvatarChanged ||
-      hasPrivacyChanged
-    );
-  }, [
-    hasNameChanged,
-    hasYearChanged,
-    hasDepartmentChanged,
-    hasBioChanged,
-    hasSkillsChanged,
-    hasAvatarChanged,
-    hasPrivacyChanged,
-  ]);
-
-  // -------------------------------------------------------------
-  // Dedicated Field Handlers
-  // -------------------------------------------------------------
   const handleDisplayNameChange = useCallback((newName: string) => {
+    setUserHasEdited(true);
     setDisplayName(newName);
   }, []);
 
   const handleDepartmentChange = useCallback((selectedDept: string) => {
+    setUserHasEdited(true);
     if (selectedDept === "Other") {
       setIsCustomDept(true);
     } else {
@@ -285,61 +210,63 @@ export default function ProfilePage() {
   }, []);
 
   const handleCustomDepartmentChange = useCallback((customVal: string) => {
+    setUserHasEdited(true);
     setCustomDepartment(customVal);
   }, []);
 
   const handleYearChange = useCallback((year: string) => {
+    setUserHasEdited(true);
     setAcademicYear(year);
   }, []);
 
   const handleBioChange = useCallback((newBio: string) => {
+    setUserHasEdited(true);
     setBio(newBio);
   }, []);
 
   const handleAddSkill = useCallback((skillToAdd: string) => {
     const trimmed = skillToAdd.trim();
     if (!trimmed) return;
+    setUserHasEdited(true);
     setSkills((prev) => (prev.includes(trimmed) ? prev : [...prev, trimmed]));
     setNewSkillInput("");
   }, []);
 
   const handleRemoveSkill = useCallback((skillToRemove: string) => {
+    setUserHasEdited(true);
     setSkills((prev) => prev.filter((s) => s !== skillToRemove));
   }, []);
 
   const handleToggleShowDepartment = useCallback((nextVal: boolean) => {
+    setUserHasEdited(true);
     setShowDepartment(nextVal);
   }, []);
 
   const handleToggleShowPhone = useCallback((nextVal: boolean) => {
+    setUserHasEdited(true);
     setShowPhone(nextVal);
   }, []);
 
   const handleAvatarChange = useCallback(() => {
     const newUrl = window.prompt("Enter image URL for your profile photo:", avatarUrl || "");
     if (newUrl !== null) {
+      setUserHasEdited(true);
       setAvatarUrl(newUrl.trim() || undefined);
     }
   }, [avatarUrl]);
 
   const handleResetToTelegram = useCallback(() => {
     if (auth.status === "authenticated" && auth.user) {
+      setUserHasEdited(true);
       if (auth.user.displayName) setDisplayName(auth.user.displayName);
       if (auth.user.avatarUrl) setAvatarUrl(auth.user.avatarUrl);
     }
   }, [auth]);
 
   // -------------------------------------------------------------
-  // Master Save Handler: Executes ONLY when changes are valid
+  // Master Save Handler: Always Functional & Persists Everything
   // -------------------------------------------------------------
   const handleSaveAll = async () => {
-    // If neither name nor year nor anything changed, block execution
-    if (!hasAnyChanges) {
-      setSaveError("No changes detected. Edit your name, year, department, bio, or skills first.");
-      setTimeout(() => setSaveError(null), 3500);
-      return;
-    }
-
     if (!displayName.trim()) {
       setSaveError("Name cannot be empty.");
       setTimeout(() => setSaveError(null), 3000);
@@ -365,14 +292,14 @@ export default function ProfilePage() {
       showPhone,
     };
 
-    // 1. Immediately persist to localStorage
+    // 1. Always immediately persist to LocalStorage
     try {
       localStorage.setItem("wku_user_profile", JSON.stringify(payload));
     } catch (e) {
-      console.error("Local storage error", e);
+      console.error("Local storage save error", e);
     }
 
-    // 2. Sync to Convex database
+    // 2. Always persist to Convex database when connected
     try {
       if (auth.status === "authenticated" && auth.initData) {
         await updateMeMutation({
@@ -388,41 +315,14 @@ export default function ProfilePage() {
         });
         setSaveMessage("Profile saved to database and synced across your campus circle!");
       } else {
-        setSaveMessage("Changes saved locally! Connect via Telegram to sync live to campus database.");
+        setSaveMessage("Profile saved locally! Connect via Telegram to sync live to campus database.");
       }
-
-      // Update baseline so button is disabled until next real modification
-      setSavedBaseline({
-        displayName: payload.displayName,
-        avatarUrl: payload.avatarUrl,
-        department: isCustomDept ? "Other" : activeDepartment,
-        customDepartment: isCustomDept ? activeDepartment : "",
-        isCustomDept,
-        academicYear,
-        bio,
-        skills: [...skills],
-        showDepartment,
-        showPhone,
-      });
 
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 4500);
     } catch (err: unknown) {
-      console.warn("Convex mutation notice:", err);
-      // Saved locally fallback
+      console.warn("Convex mutation note:", err);
       setSaveMessage("Changes saved locally on your device!");
-      setSavedBaseline({
-        displayName: payload.displayName,
-        avatarUrl: payload.avatarUrl,
-        department: isCustomDept ? "Other" : activeDepartment,
-        customDepartment: isCustomDept ? activeDepartment : "",
-        isCustomDept,
-        academicYear,
-        bio,
-        skills: [...skills],
-        showDepartment,
-        showPhone,
-      });
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 4500);
     } finally {
@@ -459,13 +359,13 @@ export default function ProfilePage() {
           </Link>
 
           <div className="flex items-center gap-2">
-            {hasAnyChanges ? (
-              <span className="rounded-full bg-[#c6f15b]/20 px-2.5 py-0.5 text-[10px] font-bold text-[#c6f15b] animate-pulse">
-                Modifications pending
+            {userHasEdited ? (
+              <span className="rounded-full bg-[#c6f15b]/20 px-2.5 py-0.5 text-[10px] font-bold text-[#c6f15b]">
+                Unsaved edits
               </span>
             ) : (
               <span className="rounded-full bg-white/[0.05] px-2.5 py-0.5 text-[10px] font-medium text-[#7a8174]">
-                Up to date
+                Profile active
               </span>
             )}
             {auth.status === "authenticated" ? (
@@ -481,7 +381,7 @@ export default function ProfilePage() {
           </div>
         </header>
 
-        {/* Profile Hero Card with Live Sync to Editable States */}
+        {/* Profile Hero Card with Instant Live Preview */}
         <section className="relative overflow-hidden rounded-[25px] bg-[#c6f15b] p-5 text-[#17200e] shadow-[0_16px_40px_rgba(123,161,43,0.15)]">
           <div
             aria-hidden="true"
@@ -494,7 +394,7 @@ export default function ProfilePage() {
 
           <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              {/* Profile Avatar / Photo with click-to-update */}
+              {/* Profile Avatar / Photo */}
               <div className="relative flex size-18 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#111510] font-display text-2xl font-black text-[#c6f15b] shadow-xl ring-4 ring-[#8dbb30]/30 sm:size-20">
                 {avatarUrl ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
@@ -526,7 +426,6 @@ export default function ProfilePage() {
                     strokeWidth={2.5}
                   />
                 </div>
-                {/* Real-time reactive preview: changes here as you select/type */}
                 <p className="mt-0.5 text-xs font-semibold text-[#2f421a]">
                   {effectiveDepartment} • {academicYear}
                 </p>
@@ -558,9 +457,9 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {/* Modular Fields Container */}
+        {/* Editable Fields Container */}
         <div className="flex flex-col gap-3">
-          {/* FUNCTION: Edit Display Name */}
+          {/* FUNCTION: Full Name */}
           <section className="rounded-[23px] border border-white/[0.06] bg-[#191c18] p-4 shadow-[0_12px_32px_rgba(0,0,0,0.2)] sm:p-5">
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -574,23 +473,14 @@ export default function ProfilePage() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5">
-                {hasNameChanged && (
-                  <span className="text-[10px] font-bold text-[#c6f15b]">Edited</span>
-                )}
-                <Edit3 className="size-3.5 text-[#8e9587]" />
-              </div>
+              <Edit3 className="size-3.5 text-[#8e9587]" />
             </div>
             <input
               type="text"
               value={displayName}
               onChange={(e) => handleDisplayNameChange(e.target.value)}
               placeholder="Your full name..."
-              className={`w-full rounded-[14px] border bg-[#0f110e] px-3.5 py-2.5 text-xs text-white focus:outline-none focus:ring-1 ${
-                hasNameChanged
-                  ? "border-[#c6f15b] focus:ring-[#c6f15b]"
-                  : "border-white/[0.08] focus:border-[#c6f15b] focus:ring-[#c6f15b]"
-              }`}
+              className="w-full rounded-[14px] border border-white/[0.08] bg-[#0f110e] px-3.5 py-2.5 text-xs text-white focus:border-[#c6f15b] focus:outline-none focus:ring-1 focus:ring-[#c6f15b]"
             />
           </section>
 
@@ -608,9 +498,6 @@ export default function ProfilePage() {
                   </p>
                 </div>
               </div>
-              {hasDepartmentChanged && (
-                <span className="text-[10px] font-bold text-[#c6f15b]">Edited</span>
-              )}
             </div>
 
             <div className="space-y-4">
@@ -621,11 +508,7 @@ export default function ProfilePage() {
                 <select
                   value={isCustomDept ? "Other" : department}
                   onChange={(e) => handleDepartmentChange(e.target.value)}
-                  className={`w-full cursor-pointer rounded-[14px] border bg-[#0f110e] px-3.5 py-2.5 text-xs text-white focus:outline-none focus:ring-1 ${
-                    hasDepartmentChanged
-                      ? "border-[#c6f15b] focus:ring-[#c6f15b]"
-                      : "border-white/[0.08] focus:border-[#c6f15b] focus:ring-[#c6f15b]"
-                  }`}
+                  className="w-full cursor-pointer rounded-[14px] border border-white/[0.08] bg-[#0f110e] px-3.5 py-2.5 text-xs text-white focus:border-[#c6f15b] focus:outline-none focus:ring-1 focus:ring-[#c6f15b]"
                 >
                   {WKU_DEPARTMENTS.map((dept) => (
                     <option key={dept} value={dept} className="bg-[#191c18] text-white">
@@ -652,16 +535,9 @@ export default function ProfilePage() {
 
               {/* FUNCTION: Academic Year */}
               <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <label className="block text-xs font-medium text-[#c4c8bd]">
-                    Academic Year
-                  </label>
-                  {hasYearChanged && (
-                    <span className="text-[10px] font-bold text-[#c6f15b]">
-                      Changed to {academicYear}
-                    </span>
-                  )}
-                </div>
+                <label className="mb-2 block text-xs font-medium text-[#c4c8bd]">
+                  Academic Year
+                </label>
                 <div className="flex flex-wrap gap-2">
                   {ACADEMIC_YEARS.map((yr) => {
                     const isSelected = academicYear === yr;
@@ -670,7 +546,7 @@ export default function ProfilePage() {
                         key={yr}
                         type="button"
                         onClick={() => handleYearChange(yr)}
-                        className={`rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
+                        className={`cursor-pointer rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
                           isSelected
                             ? "bg-[#c6f15b] text-[#111310] shadow-[0_0_16px_rgba(198,241,91,0.25)] ring-2 ring-[#c6f15b]"
                             : "border border-white/[0.06] bg-[#0f110e] text-[#9da396] hover:border-white/[0.15] hover:text-white"
@@ -699,9 +575,6 @@ export default function ProfilePage() {
                   </p>
                 </div>
               </div>
-              {hasBioChanged && (
-                <span className="text-[10px] font-bold text-[#c6f15b]">Edited</span>
-              )}
             </div>
 
             <div>
@@ -732,9 +605,6 @@ export default function ProfilePage() {
                   </p>
                 </div>
               </div>
-              {hasSkillsChanged && (
-                <span className="text-[10px] font-bold text-[#c6f15b]">Edited</span>
-              )}
             </div>
 
             {/* Active Skills Badges */}
@@ -749,13 +619,13 @@ export default function ProfilePage() {
                   skills.map((skill) => (
                     <span
                       key={skill}
-                      className="group inline-flex items-center gap-1.5 rounded-full border border-[#c6f15b]/30 bg-[#252c1c] px-3 py-1.5 text-xs font-semibold text-[#d9ff86] transition-all hover:border-red-400/40 hover:bg-red-950/20"
+                      className="group inline-flex items-center gap-1.5 rounded-full border border-[#c6f15b]/30 bg-[#252c1c] px-3 py-1.5 text-xs font-semibold text-[#d9ff86] transition-all"
                     >
                       <span>{skill}</span>
                       <button
                         type="button"
                         onClick={() => handleRemoveSkill(skill)}
-                        className="rounded-full text-[#9da396] hover:text-red-400"
+                        className="cursor-pointer rounded-full p-0.5 text-[#9da396] hover:bg-red-500/20 hover:text-red-400"
                         title={`Remove ${skill}`}
                       >
                         <X className="size-3.5" />
@@ -784,7 +654,7 @@ export default function ProfilePage() {
               <button
                 type="button"
                 onClick={() => handleAddSkill(newSkillInput)}
-                className="inline-flex items-center gap-1.5 rounded-[14px] bg-[#c6f15b] px-4 py-2 text-xs font-bold text-[#111310] transition-transform hover:scale-105 active:scale-95"
+                className="cursor-pointer inline-flex items-center gap-1.5 rounded-[14px] bg-[#c6f15b] px-4 py-2 text-xs font-bold text-[#111310] transition-transform hover:scale-105 active:scale-95"
               >
                 <Plus className="size-3.5" />
                 Add
@@ -794,7 +664,7 @@ export default function ProfilePage() {
             {/* Popular quick add chips */}
             <div>
               <p className="mb-2 text-[11px] font-medium text-[#8e9587]">
-                Quick suggestions:
+                Quick suggestions (tap to add):
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {POPULAR_SKILLS.filter((s) => !skills.includes(s)).map((suggestion) => (
@@ -802,7 +672,7 @@ export default function ProfilePage() {
                     key={suggestion}
                     type="button"
                     onClick={() => handleAddSkill(suggestion)}
-                    className="inline-flex items-center gap-1 rounded-full border border-white/[0.06] bg-[#0f110e] px-2.5 py-1 text-[11px] font-medium text-[#b0b7a8] transition-colors hover:border-[#c6f15b]/40 hover:text-[#c6f15b]"
+                    className="cursor-pointer inline-flex items-center gap-1 rounded-full border border-white/[0.06] bg-[#0f110e] px-2.5 py-1 text-[11px] font-medium text-[#b0b7a8] transition-colors hover:border-[#c6f15b]/40 hover:text-[#c6f15b] active:scale-95"
                   >
                     <Plus className="size-2.5" />
                     {suggestion}
@@ -865,24 +735,18 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* Save Button (Disabled & Non-functional if nothing was modified) */}
+          {/* Save Button (Always fully clickable and functional) */}
           <button
             type="button"
             onClick={handleSaveAll}
-            disabled={isSaving || !hasAnyChanges}
-            className={`group flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-sm font-bold transition-all ${
-              !hasAnyChanges
-                ? "cursor-not-allowed border border-white/[0.06] bg-[#1f221e] text-[#6c7265] opacity-60"
-                : "bg-[#c6f15b] text-[#111310] shadow-[0_10px_28px_rgba(198,241,91,0.25)] hover:bg-[#d6ff73] hover:shadow-[0_12px_32px_rgba(198,241,91,0.35)] active:scale-[0.99]"
-            }`}
+            disabled={isSaving}
+            className="cursor-pointer group flex w-full items-center justify-center gap-2 rounded-full bg-[#c6f15b] py-3.5 text-sm font-bold text-[#111310] shadow-[0_10px_28px_rgba(198,241,91,0.25)] transition-all hover:bg-[#d6ff73] hover:shadow-[0_12px_32px_rgba(198,241,91,0.35)] active:scale-[0.99] disabled:opacity-50"
           >
             {isSaving ? (
               <span className="flex items-center gap-2">
                 <span className="size-4 animate-spin rounded-full border-2 border-[#111310] border-t-transparent" />
                 Saving Profile...
               </span>
-            ) : !hasAnyChanges ? (
-              <span>No Changes to Save</span>
             ) : (
               <>
                 <Save className="size-4 transition-transform group-hover:scale-110" />
